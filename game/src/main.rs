@@ -1,9 +1,12 @@
+use glam::{Mat4, Vec2, Vec3};
 use miniquad::*;
 
 #[repr(C)]
-struct Vec2 {
-    x: f32,
-    y: f32,
+struct Color {
+    r: f32,
+    g: f32,
+    b: f32,
+    a: f32,
 }
 
 #[repr(C)]
@@ -19,12 +22,13 @@ struct Stage {
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
+
         #[rustfmt::skip]
         let vertices: [Vertex; 4] = [
-            Vertex { pos: Vec2 { x: -0.5, y: -0.5 }, uv: Vec2 { x: 0., y: 0. } },
-            Vertex { pos: Vec2 { x:  0.5, y: -0.5 }, uv: Vec2 { x: 1., y: 0. } },
-            Vertex { pos: Vec2 { x:  0.5, y:  0.5 }, uv: Vec2 { x: 1., y: 1. } },
-            Vertex { pos: Vec2 { x: -0.5, y:  0.5 }, uv: Vec2 { x: 0., y: 1. } },
+            Vertex { pos: Vec2::new(-0.5,  -0.5 ), uv: Vec2::new( 0.,  0. ) },
+            Vertex { pos: Vec2::new( 0.5,  -0.5 ), uv: Vec2::new( 1., 0. ) },
+            Vertex { pos: Vec2::new( 0.5,   0.5 ), uv: Vec2::new( 1., 1. ) },
+            Vertex { pos: Vec2::new(-0.5,   0.5 ), uv: Vec2::new( 0., 1. ) },
         ];
         let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
         let pixels: [u8; 4 * 4 * 4] = [
@@ -44,7 +48,7 @@ impl Stage {
             index_buffer,
             images: vec![texture],
         };
-        let shader = Shader::new(ctx, shader::VERTEX, shader::FRAGMENT, shader::meta()).unwrap();
+        let shader = shader::new(ctx).unwrap();
 
         let pipeline = Pipeline::new(
             ctx,
@@ -64,6 +68,16 @@ impl EventHandler for Stage {
     fn update(&mut self, _ctx: &mut Context) {}
 
     fn draw(&mut self, ctx: &mut Context) {
+        
+        let (width, height) = ctx.screen_size();
+
+        
+        let fovy = 45.;
+        let aspect = width / height;
+        let top = fovy / 2.;
+        let right = top * aspect;
+        let projection = Mat4::orthographic_rh_gl(0., 800., 600., 0., -1., 1.0);
+        let model = Mat4::identity();
         let t = date::now();
 
         ctx.begin_default_pass(Default::default());
@@ -71,14 +85,13 @@ impl EventHandler for Stage {
         ctx.apply_pipeline(&self.pipeline);
         ctx.apply_bindings(&self.bindings);
 
-        for i in 0..10 {
-            let t = t + i as f64 * 0.3;
-
-            ctx.apply_uniforms(&shader::Uniforms {
-                offset: (t.sin() as f32 * 0.5, (t * 3.).cos() as f32 * 0.5),
-            });
-            ctx.draw(0, 6, 1);
-        }
+        ctx.apply_uniforms(&shader::VertexUniforms {
+            model,
+            projection,
+        });
+        ctx.draw(0, 6, 1);
+        
+        ctx.end_render_pass();
 
         ctx.commit_frame();
     }
@@ -92,21 +105,33 @@ fn main() {
 
 mod shader {
     use miniquad::*;
+    use glam::Mat4;
 
-    pub const VERTEX: &str = include_str!("./quad.vert");
-    pub const FRAGMENT: &str = include_str!("./quad.frag");
+    pub const VERTEX: &str = include_str!("./sprite.vert");
+    pub const FRAGMENT: &str = include_str!("./sprite.frag");
+    // uniform mat4 model;
+    // uniform mat4 projection;
+
+    #[repr(C)]
+    pub struct VertexUniforms {
+        pub model: Mat4,
+        pub projection: Mat4,
+    }
 
     pub fn meta() -> ShaderMeta {
         ShaderMeta {
             images: vec!["tex".to_string()],
             uniforms: UniformBlockLayout {
-                uniforms: vec![UniformDesc::new("offset", UniformType::Float2)],
+                uniforms: vec![
+                    UniformDesc::new("model", UniformType::Mat4),
+                    UniformDesc::new("view", UniformType::Mat4),
+                    UniformDesc::new("projection", UniformType::Mat4),
+                ],
             },
         }
     }
 
-    #[repr(C)]
-    pub struct Uniforms {
-        pub offset: (f32, f32),
+    pub fn new(ctx: &mut Context) -> Result<Shader, ShaderError> {
+        Shader::new(ctx, VERTEX, FRAGMENT, meta())
     }
 }
