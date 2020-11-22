@@ -39,6 +39,13 @@ impl SnakeHead {
         }
     }
 
+    pub fn draw(&self, ctx: &mut Context, uniform: &mut shader::VertexUniforms) {
+        uniform.model = self.model();
+        ctx.apply_bindings(&self.bindings);
+        ctx.apply_uniforms(uniform);
+        ctx.draw(0, 6, 1);
+    }
+
     pub fn model(&self) -> Mat4 {
         Mat4::from_rotation_translation(
             Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
@@ -100,18 +107,17 @@ impl EventHandler for Stage {
             1.0,
         );
         let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.0, 0., 0.));
-        let model = self.snake_head.model();
-
-        ctx.begin_default_pass(PassAction::clear_color(0.9, 0.9, 0.95, 1.));
-        ctx.apply_pipeline(&self.pipeline);
-        ctx.apply_bindings(&self.snake_head.bindings);
-
-        ctx.apply_uniforms(&shader::VertexUniforms {
+        let model = Mat4::identity();
+        let mut uniform = shader::VertexUniforms {
             model,
             view,
             projection,
-        });
-        ctx.draw(0, 6, 1);
+        };
+
+        ctx.begin_default_pass(PassAction::clear_color(0.9, 0.9, 0.95, 1.));
+        ctx.apply_pipeline(&self.pipeline);
+
+        self.snake_head.draw(ctx, &mut uniform);
 
         ctx.end_render_pass();
 
