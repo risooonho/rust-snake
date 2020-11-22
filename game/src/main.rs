@@ -171,7 +171,7 @@ impl Stage {
             snake_head,
             pipeline,
             scale: 20.,
-            move_timer: Timer::new(0.6),
+            move_timer: Timer::new(0.4),
             input: Input::default(),
         }
     }
@@ -242,7 +242,6 @@ impl EventHandler for Stage {
         self.snake_head.draw(ctx, &mut uniform);
 
         ctx.end_render_pass();
-
         ctx.commit_frame();
     }
 }
