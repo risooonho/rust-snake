@@ -1,4 +1,4 @@
-use glam::{Mat4, Vec2, Vec3};
+use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::*;
 
 #[repr(C)]
@@ -16,13 +16,13 @@ struct Vertex {
 }
 
 struct Stage {
+    scale: f32,
     pipeline: Pipeline,
     bindings: Bindings,
 }
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
-
         #[rustfmt::skip]
         let vertices: [Vertex; 4] = [
             Vertex { pos: Vec2::new(-0.5,  -0.5 ), uv: Vec2::new( 0.,  0. ) },
@@ -60,7 +60,11 @@ impl Stage {
             shader,
         );
 
-        Stage { pipeline, bindings }
+        Stage {
+            pipeline,
+            bindings,
+            scale: 10.,
+        }
     }
 }
 
@@ -68,17 +72,21 @@ impl EventHandler for Stage {
     fn update(&mut self, _ctx: &mut Context) {}
 
     fn draw(&mut self, ctx: &mut Context) {
-        
         let (width, height) = ctx.screen_size();
-
-        
-        let fovy = 45.;
         let aspect = width / height;
-        let top = fovy / 2.;
-        let right = top * aspect;
-        let projection = Mat4::orthographic_rh_gl(0., 800., 600., 0., -1., 1.0);
-        let model = Mat4::identity();
-        let t = date::now();
+        let projection = Mat4::orthographic_rh_gl(
+            -1. * aspect * self.scale,
+            1. * aspect * self.scale,
+            -1. * self.scale,
+            1. * self.scale,
+            -1.,
+            1.0,
+        );
+        let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.5, 0., 0.));
+        let model = Mat4::from_rotation_translation(
+            Quat::from_axis_angle(Vec3::new(0., 0., 0.), 45.0f32.to_radians()),
+            Vec3::new(0., 0., 0.),
+        );
 
         ctx.begin_default_pass(Default::default());
 
@@ -87,10 +95,11 @@ impl EventHandler for Stage {
 
         ctx.apply_uniforms(&shader::VertexUniforms {
             model,
+            view,
             projection,
         });
         ctx.draw(0, 6, 1);
-        
+
         ctx.end_render_pass();
 
         ctx.commit_frame();
@@ -104,17 +113,16 @@ fn main() {
 }
 
 mod shader {
-    use miniquad::*;
     use glam::Mat4;
+    use miniquad::*;
 
     pub const VERTEX: &str = include_str!("./sprite.vert");
     pub const FRAGMENT: &str = include_str!("./sprite.frag");
-    // uniform mat4 model;
-    // uniform mat4 projection;
 
     #[repr(C)]
     pub struct VertexUniforms {
         pub model: Mat4,
+        pub view: Mat4,
         pub projection: Mat4,
     }
 
