@@ -1,12 +1,16 @@
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::*;
 
-#[repr(C)]
-struct Color {
-    r: f32,
-    g: f32,
-    b: f32,
-    a: f32,
+struct SnakeHead {
+    pub position: Vec2,
+}
+
+impl SnakeHead {
+    pub fn new(_ctx: &mut Context) -> SnakeHead {
+        SnakeHead {
+            position: Vec2::new(0., 0.),
+        }
+    }
 }
 
 #[repr(C)]
@@ -16,6 +20,7 @@ struct Vertex {
 }
 
 struct Stage {
+    snake_head: SnakeHead,
     scale: f32,
     pipeline: Pipeline,
     bindings: Bindings,
@@ -60,7 +65,10 @@ impl Stage {
             shader,
         );
 
+        let snake_head = SnakeHead::new(ctx);
+
         Stage {
+            snake_head,
             pipeline,
             bindings,
             scale: 10.,
@@ -69,7 +77,9 @@ impl Stage {
 }
 
 impl EventHandler for Stage {
-    fn update(&mut self, _ctx: &mut Context) {}
+    fn update(&mut self, _ctx: &mut Context) {
+        self.snake_head.position += Vec2::new(0., 0.001);
+    }
 
     fn draw(&mut self, ctx: &mut Context) {
         let (width, height) = ctx.screen_size();
@@ -82,14 +92,13 @@ impl EventHandler for Stage {
             -1.,
             1.0,
         );
-        let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.5, 0., 0.));
+        let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.0, 0., 0.));
         let model = Mat4::from_rotation_translation(
-            Quat::from_axis_angle(Vec3::new(0., 0., 0.), 45.0f32.to_radians()),
-            Vec3::new(0., 0., 0.),
+            Quat::from_axis_angle(Vec3::new(0., 0., 1.), 90.0f32.to_radians()),
+            Vec3::new(self.snake_head.position.x, self.snake_head.position.y, 0.),
         );
 
-        ctx.begin_default_pass(Default::default());
-
+        ctx.begin_default_pass(PassAction::clear_color(0.9, 0.9, 0.95, 1.));
         ctx.apply_pipeline(&self.pipeline);
         ctx.apply_bindings(&self.bindings);
 
