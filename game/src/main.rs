@@ -1,7 +1,22 @@
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::*;
 
+#[derive(PartialEq)]
+enum Direction {
+    Up,
+    Right,
+    Down,
+    Left,
+}
+
+impl Default for Direction {
+    fn default() -> Self {
+        Direction::Up
+    }
+}
+
 struct SnakeHead {
+    pub direction: Direction,
     pub position: Vec2,
     pub bindings: Bindings,
 }
@@ -36,11 +51,44 @@ impl SnakeHead {
         SnakeHead {
             position: Vec2::new(0., 0.),
             bindings,
+            direction: Default::default(),
+        }
+    }
+
+    pub fn update_direction(&mut self, input: &Input) {
+        if input.go_left {
+            if self.direction == Direction::Right {
+                return;
+            }
+            self.direction = Direction::Left;
+        }
+        if input.go_right {
+            if self.direction == Direction::Left {
+                return;
+            }
+            self.direction = Direction::Right;
+        }
+        if input.go_down {
+            if self.direction == Direction::Up {
+                return;
+            }
+            self.direction = Direction::Down;
+        }
+        if input.go_up {
+            if self.direction == Direction::Down {
+                return;
+            }
+            self.direction = Direction::Up;
         }
     }
 
     pub fn step(&mut self) {
-        self.position += Vec2::new(0., 1.);
+        match self.direction {
+            Direction::Up => self.position += Vec2::new(0., 1.),
+            Direction::Right => self.position += Vec2::new(1., 0.),
+            Direction::Down => self.position += Vec2::new(0., -1.),
+            Direction::Left => self.position += Vec2::new(-1., 0.),
+        }
     }
 
     pub fn draw(&self, ctx: &mut Context, uniform: &mut shader::VertexUniforms) {
@@ -70,7 +118,12 @@ struct Timer {
 }
 
 impl Timer {
-    fn new(duration: f64) -> Self { Self { start: date::now(), duration } }
+    fn new(duration: f64) -> Self {
+        Self {
+            start: date::now(),
+            duration,
+        }
+    }
 
     fn reset(&mut self) {
         self.start = date::now();
@@ -82,9 +135,16 @@ impl Timer {
     }
 }
 
-
+#[derive(Default)]
+struct Input {
+    go_left: bool,
+    go_right: bool,
+    go_up: bool,
+    go_down: bool,
+}
 
 struct Stage {
+    input: Input,
     snake_head: SnakeHead,
     scale: f32,
     pipeline: Pipeline,
@@ -111,7 +171,8 @@ impl Stage {
             snake_head,
             pipeline,
             scale: 20.,
-            move_timer: Timer::new(0.6)
+            move_timer: Timer::new(0.6),
+            input: Input::default(),
         }
     }
 }
@@ -121,8 +182,40 @@ impl EventHandler for Stage {
         if self.move_timer.finished() {
             self.snake_head.step();
             self.move_timer.reset();
+        } else {
+            self.snake_head.update_direction(&self.input);
+        }
+        self.input = Default::default()
+    }
+
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        keycode: KeyCode,
+        _keymods: KeyMods,
+        repeat: bool,
+    ) {
+        if repeat {
+            return;
+        }
+        match keycode {
+            KeyCode::Left | KeyCode::A => {
+                self.input.go_left = true;
+            }
+            KeyCode::Right | KeyCode::D => {
+                self.input.go_right = true;
+            }
+            KeyCode::Up | KeyCode::W => {
+                self.input.go_up = true;
+            }
+            KeyCode::Down | KeyCode::S => {
+                self.input.go_down = true;
+            }
+            _ => {}
         }
     }
+
+    fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) {}
 
     fn draw(&mut self, ctx: &mut Context) {
         let (width, height) = ctx.screen_size();
