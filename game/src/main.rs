@@ -27,11 +27,11 @@ struct SnakeHead {
 impl SnakeHead {
     pub fn new(ctx: &mut Context) -> SnakeHead {
         #[rustfmt::skip]
-        let vertices: [Vertex; 4] = [
-            Vertex { pos: Vec2::new(-0.5,  -0.5 ), uv: Vec2::new( 0.,  0. ) },
-            Vertex { pos: Vec2::new( 0.5,  -0.5 ), uv: Vec2::new( 1., 0. ) },
-            Vertex { pos: Vec2::new( 0.5,   0.5 ), uv: Vec2::new( 1., 1. ) },
-            Vertex { pos: Vec2::new(-0.5,   0.5 ), uv: Vec2::new( 0., 1. ) },
+        let vertices: [shaders::Vertex; 4] = [
+            shaders::Vertex { pos: Vec2::new(-0.5,  -0.5 ), uv: Vec2::new( 0.,  0. ) },
+            shaders::Vertex { pos: Vec2::new( 0.5,  -0.5 ), uv: Vec2::new( 1., 0. ) },
+            shaders::Vertex { pos: Vec2::new( 0.5,   0.5 ), uv: Vec2::new( 1., 1. ) },
+            shaders::Vertex { pos: Vec2::new(-0.5,   0.5 ), uv: Vec2::new( 0., 1. ) },
         ];
         let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
         let pixels: [u8; 4 * 4 * 4] = [
@@ -106,35 +106,6 @@ impl SnakeHead {
             Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
             Vec3::new(self.position.x, self.position.y, 0.),
         )
-    }
-}
-
-#[repr(C)]
-struct Vertex {
-    pos: Vec2,
-    uv: Vec2,
-}
-
-struct Timer {
-    start: f64,
-    duration: f64,
-}
-
-impl Timer {
-    fn new(duration: f64) -> Self {
-        Self {
-            start: date::now(),
-            duration,
-        }
-    }
-
-    fn reset(&mut self) {
-        self.start = date::now();
-    }
-
-    fn finished(&self) -> bool {
-        let now = date::now();
-        return (now - self.start) > self.duration;
     }
 }
 
