@@ -11,6 +11,13 @@ impl SnakeHead {
             position: Vec2::new(0., 0.),
         }
     }
+
+    pub fn model(&self) -> Mat4 {
+        Mat4::from_rotation_translation(
+            Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
+            Vec3::new(self.position.x, self.position.y, 0.),
+        )
+    }
 }
 
 #[repr(C)]
@@ -93,10 +100,7 @@ impl EventHandler for Stage {
             1.0,
         );
         let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.0, 0., 0.));
-        let model = Mat4::from_rotation_translation(
-            Quat::from_axis_angle(Vec3::new(0., 0., 1.), 90.0f32.to_radians()),
-            Vec3::new(self.snake_head.position.x, self.snake_head.position.y, 0.),
-        );
+        let model = self.snake_head.model();
 
         ctx.begin_default_pass(PassAction::clear_color(0.9, 0.9, 0.95, 1.));
         ctx.apply_pipeline(&self.pipeline);
