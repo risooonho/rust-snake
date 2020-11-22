@@ -1,7 +1,7 @@
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::*;
 
-mod utils;
+mod components;
 
 #[derive(PartialEq)]
 enum Direction {
@@ -150,7 +150,7 @@ struct Stage {
     snake_head: SnakeHead,
     scale: f32,
     pipeline: Pipeline,
-    move_timer: utils::Timer,
+    move_timer: components::Timer,
 }
 
 impl Stage {
@@ -173,7 +173,7 @@ impl Stage {
             snake_head,
             pipeline,
             scale: 20.,
-            move_timer: utils::Timer::new(0.4),
+            move_timer: components::Timer::new(0.4),
             input: Input::default(),
         }
     }
