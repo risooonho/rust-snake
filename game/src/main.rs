@@ -39,6 +39,10 @@ impl SnakeHead {
         }
     }
 
+    pub fn step(&mut self) {
+        self.position += Vec2::new(0., 1.);
+    }
+
     pub fn draw(&self, ctx: &mut Context, uniform: &mut shader::VertexUniforms) {
         uniform.model = self.model();
         ctx.apply_bindings(&self.bindings);
@@ -60,10 +64,31 @@ struct Vertex {
     uv: Vec2,
 }
 
+struct Timer {
+    start: f64,
+    duration: f64,
+}
+
+impl Timer {
+    fn new(duration: f64) -> Self { Self { start: date::now(), duration } }
+
+    fn reset(&mut self) {
+        self.start = date::now();
+    }
+
+    fn finished(&self) -> bool {
+        let now = date::now();
+        return (now - self.start) > self.duration;
+    }
+}
+
+
+
 struct Stage {
     snake_head: SnakeHead,
     scale: f32,
     pipeline: Pipeline,
+    move_timer: Timer,
 }
 
 impl Stage {
@@ -86,13 +111,17 @@ impl Stage {
             snake_head,
             pipeline,
             scale: 20.,
+            move_timer: Timer::new(0.6)
         }
     }
 }
 
 impl EventHandler for Stage {
     fn update(&mut self, _ctx: &mut Context) {
-        self.snake_head.position += Vec2::new(0., 0.001);
+        if self.move_timer.finished() {
+            self.snake_head.step();
+            self.move_timer.reset();
+        }
     }
 
     fn draw(&mut self, ctx: &mut Context) {
