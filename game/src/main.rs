@@ -71,7 +71,7 @@ impl Stage {
             snake_head,
             pipeline,
             bindings,
-            scale: 10.,
+            scale: 20.,
         }
     }
 }
