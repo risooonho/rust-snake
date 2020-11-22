@@ -224,10 +224,10 @@ impl EventHandler for Stage {
         let (width, height) = ctx.screen_size();
         let aspect = width / height;
         let projection = Mat4::orthographic_rh_gl(
-            -1. * aspect * self.scale,
-            1. * aspect * self.scale,
-            -1. * self.scale,
-            1. * self.scale,
+            -aspect * self.scale,
+            aspect * self.scale,
+            -self.scale,
+            self.scale,
             -1.,
             1.0,
         );
