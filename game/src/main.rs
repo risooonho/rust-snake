@@ -3,38 +3,11 @@ use miniquad::*;
 
 struct SnakeHead {
     pub position: Vec2,
+    pub bindings: Bindings,
 }
 
 impl SnakeHead {
-    pub fn new(_ctx: &mut Context) -> SnakeHead {
-        SnakeHead {
-            position: Vec2::new(0., 0.),
-        }
-    }
-
-    pub fn model(&self) -> Mat4 {
-        Mat4::from_rotation_translation(
-            Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
-            Vec3::new(self.position.x, self.position.y, 0.),
-        )
-    }
-}
-
-#[repr(C)]
-struct Vertex {
-    pos: Vec2,
-    uv: Vec2,
-}
-
-struct Stage {
-    snake_head: SnakeHead,
-    scale: f32,
-    pipeline: Pipeline,
-    bindings: Bindings,
-}
-
-impl Stage {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context) -> SnakeHead {
         #[rustfmt::skip]
         let vertices: [Vertex; 4] = [
             Vertex { pos: Vec2::new(-0.5,  -0.5 ), uv: Vec2::new( 0.,  0. ) },
@@ -60,6 +33,34 @@ impl Stage {
             index_buffer,
             images: vec![texture],
         };
+        SnakeHead {
+            position: Vec2::new(0., 0.),
+            bindings,
+        }
+    }
+
+    pub fn model(&self) -> Mat4 {
+        Mat4::from_rotation_translation(
+            Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
+            Vec3::new(self.position.x, self.position.y, 0.),
+        )
+    }
+}
+
+#[repr(C)]
+struct Vertex {
+    pos: Vec2,
+    uv: Vec2,
+}
+
+struct Stage {
+    snake_head: SnakeHead,
+    scale: f32,
+    pipeline: Pipeline,
+}
+
+impl Stage {
+    pub fn new(ctx: &mut Context) -> Self {
         let shader = shader::new(ctx).unwrap();
 
         let pipeline = Pipeline::new(
@@ -77,7 +78,6 @@ impl Stage {
         Stage {
             snake_head,
             pipeline,
-            bindings,
             scale: 20.,
         }
     }
@@ -104,7 +104,7 @@ impl EventHandler for Stage {
 
         ctx.begin_default_pass(PassAction::clear_color(0.9, 0.9, 0.95, 1.));
         ctx.apply_pipeline(&self.pipeline);
-        ctx.apply_bindings(&self.bindings);
+        ctx.apply_bindings(&self.snake_head.bindings);
 
         ctx.apply_uniforms(&shader::VertexUniforms {
             model,
