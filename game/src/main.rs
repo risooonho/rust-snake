@@ -1,6 +1,7 @@
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::*;
 
+mod shaders;
 mod components;
 
 #[derive(PartialEq)]
@@ -93,7 +94,7 @@ impl SnakeHead {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context, uniform: &mut shader::VertexUniforms) {
+    pub fn draw(&self, ctx: &mut Context, uniform: &mut shaders::sprite::VertexUniforms) {
         uniform.model = self.model();
         ctx.apply_bindings(&self.bindings);
         ctx.apply_uniforms(uniform);
@@ -155,7 +156,7 @@ struct Stage {
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
-        let shader = shader::new(ctx).unwrap();
+        let shader = shaders::sprite::new(ctx).unwrap();
 
         let pipeline = Pipeline::new(
             ctx,
@@ -232,7 +233,7 @@ impl EventHandler for Stage {
         );
         let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.0, 0., 0.));
         let model = Mat4::identity();
-        let mut uniform = shader::VertexUniforms {
+        let mut uniform = shaders::sprite::VertexUniforms {
             model,
             view,
             projection,
@@ -252,36 +253,4 @@ fn main() {
     miniquad::start(conf::Conf::default(), |mut ctx| {
         UserData::owning(Stage::new(&mut ctx), ctx)
     });
-}
-
-mod shader {
-    use glam::Mat4;
-    use miniquad::*;
-
-    pub const VERTEX: &str = include_str!("./sprite.vert");
-    pub const FRAGMENT: &str = include_str!("./sprite.frag");
-
-    #[repr(C)]
-    pub struct VertexUniforms {
-        pub model: Mat4,
-        pub view: Mat4,
-        pub projection: Mat4,
-    }
-
-    pub fn meta() -> ShaderMeta {
-        ShaderMeta {
-            images: vec!["tex".to_string()],
-            uniforms: UniformBlockLayout {
-                uniforms: vec![
-                    UniformDesc::new("model", UniformType::Mat4),
-                    UniformDesc::new("view", UniformType::Mat4),
-                    UniformDesc::new("projection", UniformType::Mat4),
-                ],
-            },
-        }
-    }
-
-    pub fn new(ctx: &mut Context) -> Result<Shader, ShaderError> {
-        Shader::new(ctx, VERTEX, FRAGMENT, meta())
-    }
 }
