@@ -1,4 +1,6 @@
-use glam::{Mat4, Quat, Vec3};
+use std::collections::HashMap;
+
+use glam::{Mat4, Quat, Vec3, Vec2};
 use miniquad::*;
 
 mod components;
@@ -50,14 +52,47 @@ impl Camera2D {
     }
 }
 
+#[derive(PartialEq, Eq, Hash)]
+enum AssetType {
+    Food,
+}
+
+type BindingAssets = HashMap<AssetType, Bindings>;
+
+
 struct Stage {
     camera: Camera2D,
+    bindings: BindingAssets,
     input: components::Input,
     snake_head: components::SnakeHead,
     pipeline: Pipeline,
     move_timer: components::Timer,
     food: components::WorldFood,
     food_timer: components::Timer,
+    world: hecs::World,
+}
+
+struct Food;
+struct Position(Vec2);
+
+fn render_food_system(
+    world: &mut hecs::World,
+     ctx: &mut Context,
+    camera: &Camera2D, bindings: &BindingAssets
+    ) {
+    let mut uniform = camera.uniform();
+    if let Some(binding) = bindings.get(&AssetType::Food) {
+        for (_, (_food, pos) ) in &mut world.query::<(&Food, &Position)>() {
+                let model = Mat4::from_rotation_translation(
+                    Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
+                    Vec3::new(pos.0.x, pos.0.y, 0.),
+                );
+                uniform.model = model;
+                ctx.apply_bindings(&binding);
+                ctx.apply_uniforms(&uniform);
+                ctx.draw(0, 6, 1);
+        }
+    }
 }
 
 impl Stage {
@@ -75,15 +110,21 @@ impl Stage {
         );
 
         let snake_head = components::SnakeHead::new(ctx);
+        let mut bindings = HashMap::new();
+        let snake_food_binding = components::WorldFood::new_bindings(ctx);
+        bindings.insert(AssetType::Food, snake_food_binding);
+
 
         Stage {
             camera: Camera2D::new(ctx, 20.),
+            bindings,
             snake_head,
             pipeline,
             move_timer: components::Timer::new(0.4),
             input: components::Input::default(),
             food: components::WorldFood::new(ctx),
             food_timer: components::Timer::new(1.),
+            world: hecs::World::new(),
         }
     }
 }
@@ -102,7 +143,11 @@ impl EventHandler for Stage {
             self.snake_head.update_direction(&self.input);
         }
         if self.food_timer.finished() {
-            self.food.spawn();
+            if let Some(position) = self.food.spawn() {
+                let pos = Position(position);
+                self.world.spawn((pos, Food));
+
+            }
             self.food_timer.reset();
         } else {
         }
@@ -150,7 +195,7 @@ impl EventHandler for Stage {
         ctx.apply_pipeline(&self.pipeline);
 
         self.snake_head.draw(ctx, &mut uniform);
-        self.food.draw(ctx, &mut uniform);
+        render_food_system(&mut self.world, ctx, &self.camera, &self.bindings);
 
         ctx.end_render_pass();
         ctx.commit_frame();

@@ -55,15 +55,19 @@ pub struct WorldFood {
 }
 
 impl WorldFood {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new_bindings(ctx: &mut Context) -> Bindings {
         let texture = build_square_texture(ctx, 4, Color::purple());
         let (vertex_buffer, index_buffer) = make_square(ctx, 0.8);
 
-        let bindings = Bindings {
+        Bindings {
             vertex_buffers: vec![vertex_buffer],
             index_buffer,
             images: vec![texture],
-        };
+        }
+    }
+
+    pub fn new(ctx: &mut Context) -> Self {
+        let bindings = WorldFood::new_bindings(ctx);
 
         WorldFood {
             bindings,
@@ -101,17 +105,19 @@ impl WorldFood {
         });
     }
 
-    pub fn spawn(&mut self) {
+    pub fn spawn(&mut self) -> Option<Vec2> {
         if self.count() == self.world_food.len() {
-            return;
+            return None;
         }
 
         let x = qrand::gen_range(-24, 24);
         let y = qrand::gen_range(-15, 15);
         if let Some(index) = self.world_food.iter().position(|food| food == &Food::None) {
-            self.world_food[index] = Food::Food { position: Vec2::new(x as f32, y as f32) };
-        } else {
-        }
+            let position = Vec2::new(x as f32, y as f32);
+            self.world_food[index] = Food::Food { position };
+            return Some(position)
+        } 
+        return None
     }
 
     fn count(&self) -> usize {
