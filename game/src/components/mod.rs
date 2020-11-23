@@ -1,5 +1,6 @@
 mod snake_head;
 
+use glam::Vec2;
 use glam::Mat4;
 use glam::Quat;
 use glam::Vec3;
@@ -84,3 +85,34 @@ impl Camera2D {
         }
     }
 }
+pub struct Snake;
+
+impl Snake {
+    pub fn new_bindings(ctx: &mut Context) -> miniquad::Bindings {
+        let texture = crate::utils::build_square_texture(ctx, 4, crate::utils::Color::ray_white());
+        let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 1.);
+
+        miniquad::Bindings {
+            vertex_buffers: vec![vertex_buffer],
+            index_buffer,
+            images: vec![texture],
+        }
+    }
+}
+
+pub struct Food;
+
+impl Food {
+    pub fn new_bindings(ctx: &mut Context) -> miniquad::Bindings {
+        let texture = crate::utils::build_square_texture(ctx, 4, crate::utils::Color::purple());
+        let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
+
+        miniquad::Bindings {
+            vertex_buffers: vec![vertex_buffer],
+            index_buffer,
+            images: vec![texture],
+        }
+    }
+}
+pub struct Position( pub Vec2);
+pub struct Velocity( pub Vec2);
