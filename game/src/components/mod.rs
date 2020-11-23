@@ -96,9 +96,9 @@ impl WorldFood {
         if let Some(index) = self.world_food.iter().position(|food| food == &Food::None) {
             let position = Vec2::new(x as f32, y as f32);
             self.world_food[index] = Food::Food { position };
-            return Some(position)
+            return Some(position);
         }
-        return None
+        return None;
     }
 
     fn count(&self) -> usize {
@@ -111,7 +111,6 @@ impl WorldFood {
         0
     }
 }
-
 
 pub struct Camera2D {
     scale: f32,
