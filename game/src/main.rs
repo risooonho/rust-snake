@@ -23,9 +23,9 @@ pub struct GameWorld {
 }
 
 struct Stage {
+    direction: components::Direction,
     game_world: GameWorld,
     input: components::Input,
-    snake_head: components::SnakeHead,
     pipeline: Pipeline,
     move_timer: components::Timer,
     food_timer: components::Timer,
@@ -45,7 +45,6 @@ impl Stage {
             shader,
         );
 
-        let snake_head = components::SnakeHead::new(ctx);
         let mut bindings = HashMap::new();
         let snake_food_binding = components::Food::new_bindings(ctx);
         let snake_bindings = components::Snake::new_bindings(ctx);
@@ -64,8 +63,8 @@ impl Stage {
         ));
 
         Stage {
+            direction: components::Direction::Up,
             game_world,
-            snake_head,
             pipeline,
             move_timer: components::Timer::new(0.4),
             input: components::Input::default(),
@@ -80,12 +79,13 @@ impl EventHandler for Stage {
     }
 
     fn update(&mut self, _ctx: &mut Context) {
+        self.direction.update(&self.input);
         if self.move_timer.finished() {
             systems::movement_system(&mut self.game_world);
-            self.snake_head.step();
             self.move_timer.reset();
         } else {
-            self.snake_head.update_direction(&self.input);
+            let direction = self.direction.velocity();
+            systems::update_head_direction(&mut self.game_world, direction);
         }
         if self.food_timer.finished() {
             systems::add_food_system(&mut self.game_world);
@@ -126,8 +126,6 @@ impl EventHandler for Stage {
     fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) {}
 
     fn draw(&mut self, ctx: &mut Context) {
-        let mut uniform = self.game_world.camera.uniform();
-
         ctx.begin_default_pass(PassAction::Clear {
             color: Some(utils::Color::dark_gray().into()),
             depth: Some(1.),
@@ -135,7 +133,6 @@ impl EventHandler for Stage {
         });
         ctx.apply_pipeline(&self.pipeline);
 
-        self.snake_head.draw(ctx, &mut uniform);
         systems::render_food_system(&mut self.game_world, ctx);
         systems::render_snake_system(&mut self.game_world, ctx);
 

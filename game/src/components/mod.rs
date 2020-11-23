@@ -8,7 +8,7 @@ use miniquad::date;
 use miniquad::Context;
 
 
-pub use self::snake_head::SnakeHead;
+pub use self::snake_head::Direction;
 
 #[derive(Default)]
 pub struct Input {

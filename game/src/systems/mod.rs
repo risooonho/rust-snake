@@ -22,24 +22,10 @@ pub fn add_food_system(game_world: &mut GameWorld) {
     world.spawn((pos, components::Food));
 }
 
-pub fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
-    let GameWorld {
-        camera,
-        world,
-        bindings,
-    } = game_world;
-    let mut uniform = camera.uniform();
-    if let Some(binding) = bindings.get(&AssetType::Food) {
-        for (_, (_food, pos)) in &mut world.query::<(&components::Food, &components::Position)>() {
-            let model = Mat4::from_rotation_translation(
-                Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
-                Vec3::new(pos.0.x, pos.0.y, 0.),
-            );
-            uniform.model = model;
-            ctx.apply_bindings(&binding);
-            ctx.apply_uniforms(&uniform);
-            ctx.draw(0, 6, 1);
-        }
+pub fn update_head_direction(game_world: &mut GameWorld, direction: Vec2) {
+    let GameWorld { world, .. } = game_world;
+    for (_, (velocity, _)) in &mut world.query::<(&mut components::Velocity, &components::Snake)>() {
+        velocity.0 = direction;
     }
 }
 
@@ -70,4 +56,25 @@ pub fn render_snake_system(game_world: &mut GameWorld, ctx: &mut Context) {
         }
     }
 
+}
+
+pub fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
+    let GameWorld {
+        camera,
+        world,
+        bindings,
+    } = game_world;
+    let mut uniform = camera.uniform();
+    if let Some(binding) = bindings.get(&AssetType::Food) {
+        for (_, (_food, pos)) in &mut world.query::<(&components::Food, &components::Position)>() {
+            let model = Mat4::from_rotation_translation(
+                Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
+                Vec3::new(pos.0.x, pos.0.y, 0.),
+            );
+            uniform.model = model;
+            ctx.apply_bindings(&binding);
+            ctx.apply_uniforms(&uniform);
+            ctx.draw(0, 6, 1);
+        }
+    }
 }
