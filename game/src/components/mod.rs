@@ -86,25 +86,6 @@ impl WorldFood {
         }
     }
 
-    pub fn draw(
-        &self,
-        ctx: &mut Context,
-        uniform: &mut crate::shaders::sprite::VertexUniforms,
-    ) {
-        self.world_food.iter().for_each(move |food| {
-            if let Food::Food { position } = food {
-                let model = Mat4::from_rotation_translation(
-                    Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
-                    Vec3::new(position.x, position.y, 0.),
-                );
-                uniform.model = model;
-                ctx.apply_bindings(&self.bindings);
-                ctx.apply_uniforms(uniform);
-                ctx.draw(0, 6, 1);
-            }
-        });
-    }
-
     pub fn spawn(&mut self) -> Option<Vec2> {
         if self.count() == self.world_food.len() {
             return None;
