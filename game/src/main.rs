@@ -12,6 +12,7 @@ struct Stage {
     pipeline: Pipeline,
     move_timer: components::Timer,
     food: components::WorldFood,
+    food_timer: components::Timer,
 }
 
 impl Stage {
@@ -37,6 +38,7 @@ impl Stage {
             move_timer: components::Timer::new(0.4),
             input: components::Input::default(),
             food: components::WorldFood::new(ctx),
+            food_timer: components::Timer::new(1.),
         }
     }
 }
@@ -48,6 +50,11 @@ impl EventHandler for Stage {
             self.move_timer.reset();
         } else {
             self.snake_head.update_direction(&self.input);
+        }
+        if self.food_timer.finished() {
+            self.food.spawn();
+            self.food_timer.reset();
+        } else {
         }
         self.input = Default::default()
     }

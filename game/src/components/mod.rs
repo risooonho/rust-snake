@@ -68,9 +68,7 @@ impl WorldFood {
         WorldFood {
             bindings,
             world_food: [
-                Food::Food {
-                    position: Vec2::new(2., 2.),
-                },
+                Food::None,
                 Food::None,
                 Food::None,
                 Food::None,
@@ -103,25 +101,26 @@ impl WorldFood {
         });
     }
 
-    // pub fn spawn(&mut self) {
-    //     if self.count() == self.world_food.len() {
-    //         return;
-    //     }
+    pub fn spawn(&mut self) {
+        if self.count() == self.world_food.len() {
+            return;
+        }
 
-    //     let x = qrand::gen_range(-24, 24);
-    //     let y = qrand::gen_range(-15, 15);
-    //     if let Some(index) = self.world_food.iter().position(|food| food != &Food::None) {
-    //         self.world_food[index] = Food::Food { position: Vec2::new(x as f32, y as f32) };
-    //     }
-    // }
+        let x = qrand::gen_range(-24, 24);
+        let y = qrand::gen_range(-15, 15);
+        if let Some(index) = self.world_food.iter().position(|food| food == &Food::None) {
+            self.world_food[index] = Food::Food { position: Vec2::new(x as f32, y as f32) };
+        } else {
+        }
+    }
 
-    // pub fn count(&self) -> usize {
-    //     self.world_food.iter().fold(0, |mut acc, food| {
-    //         if &Food::None != food {
-    //             acc += 1;
-    //         }
-    //         acc
-    //     });
-    //     0
-    // }
+    fn count(&self) -> usize {
+        self.world_food.iter().fold(0, |mut acc, food| {
+            if &Food::None != food {
+                acc += 1;
+            }
+            acc
+        });
+        0
+    }
 }
