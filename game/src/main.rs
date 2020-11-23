@@ -98,7 +98,11 @@ impl EventHandler for Stage {
             projection,
         };
 
-        ctx.begin_default_pass(PassAction::clear_color(0.9, 0.9, 0.95, 1.));
+        ctx.begin_default_pass(PassAction::Clear {
+            color: Some(utils::Color::dark_gray().into()),
+            depth: Some(1.),
+            stencil: None,
+        });
         ctx.apply_pipeline(&self.pipeline);
 
         self.snake_head.draw(ctx, &mut uniform);

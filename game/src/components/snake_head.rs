@@ -24,25 +24,35 @@ pub struct SnakeHead {
     pub bindings: Bindings,
 }
 
+fn make_square(size: f32) -> ([Vertex; 4], [u16; 6]) {
+    (
+        [
+            Vertex {
+                pos: Vec2::new(-size / 2., -size / 2.),
+                uv: Vec2::new(0., 0.),
+            },
+            Vertex {
+                pos: Vec2::new(size / 2., -size / 2.),
+                uv: Vec2::new(1., 0.),
+            },
+            Vertex {
+                pos: Vec2::new(size / 2., size / 2.),
+                uv: Vec2::new(1., 1.),
+            },
+            Vertex {
+                pos: Vec2::new(-size / 2., size / 2.),
+                uv: Vec2::new(0., 1.),
+            },
+        ],
+        [0, 1, 2, 0, 2, 3],
+    )
+}
+
 impl SnakeHead {
     pub fn new(ctx: &mut Context) -> SnakeHead {
         #[rustfmt::skip]
-        let vertices: [Vertex; 4] = [
-            Vertex { pos: Vec2::new(-0.5,  -0.5 ), uv: Vec2::new( 0.,  0. ) },
-            Vertex { pos: Vec2::new( 0.5,  -0.5 ), uv: Vec2::new( 1., 0. ) },
-            Vertex { pos: Vec2::new( 0.5,   0.5 ), uv: Vec2::new( 1., 1. ) },
-            Vertex { pos: Vec2::new(-0.5,   0.5 ), uv: Vec2::new( 0., 1. ) },
-        ];
-        let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
-        let pixels: [u8; 4 * 4 * 4] = [
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
-            0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF,
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF,
-            0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-        ];
-
-        let texture = crate::utils::build_square_texture(ctx, 4, Color::dark_gray());
+        let (vertices, indices) = make_square(1.0);
+        let texture = crate::utils::build_square_texture(ctx, 4, Color::ray_white());
         let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &vertices);
         let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
 
