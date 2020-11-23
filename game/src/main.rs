@@ -5,10 +5,55 @@ mod components;
 mod shaders;
 mod utils;
 
+struct Camera2D {
+    scale: f32,
+    view: Mat4,
+    projection: Mat4,
+}
+
+impl Camera2D {
+    pub fn new(ctx: &mut Context, scale: f32) -> Camera2D {
+        let (width, height) = ctx.screen_size();
+        let aspect = width / height;
+        let projection =
+            Mat4::orthographic_rh_gl(-aspect * scale, aspect * scale, -scale, scale, -1., 1.0);
+        let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.0, 0., 0.));
+
+        Camera2D {
+            scale,
+            view,
+            projection,
+        }
+    }
+
+    pub fn resize(&mut self, ctx: &mut Context) {
+        let (width, height) = ctx.screen_size();
+        let aspect = width / height;
+        #[rustfmt::skip]
+        let projection = Mat4::orthographic_rh_gl(
+                -aspect * self.scale,
+                aspect * self.scale,
+                -self.scale,
+                self.scale,
+                -1.,
+                1.0
+                );
+        self.projection = projection;
+    } 
+
+    pub fn uniform(&self) -> shaders::sprite::VertexUniforms {
+        shaders::sprite::VertexUniforms {
+            projection: self.projection,
+            view: self.view,
+            model: Mat4::identity(),
+        }
+    }
+}
+
 struct Stage {
+    camera: Camera2D,
     input: components::Input,
     snake_head: components::SnakeHead,
-    scale: f32,
     pipeline: Pipeline,
     move_timer: components::Timer,
     food: components::WorldFood,
@@ -32,9 +77,9 @@ impl Stage {
         let snake_head = components::SnakeHead::new(ctx);
 
         Stage {
+            camera: Camera2D::new(ctx, 20.),
             snake_head,
             pipeline,
-            scale: 20.,
             move_timer: components::Timer::new(0.4),
             input: components::Input::default(),
             food: components::WorldFood::new(ctx),
@@ -44,6 +89,11 @@ impl Stage {
 }
 
 impl EventHandler for Stage {
+    fn resize_event(&mut self, ctx: &mut Context, _width: f32, _height: f32) {
+        self.camera.resize(ctx);
+
+    }
+
     fn update(&mut self, _ctx: &mut Context) {
         if self.move_timer.finished() {
             self.snake_head.step();
@@ -69,6 +119,7 @@ impl EventHandler for Stage {
         if repeat {
             return;
         }
+
         match keycode {
             KeyCode::Left | KeyCode::A => {
                 self.input.go_left = true;
@@ -89,23 +140,7 @@ impl EventHandler for Stage {
     fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) {}
 
     fn draw(&mut self, ctx: &mut Context) {
-        let (width, height) = ctx.screen_size();
-        let aspect = width / height;
-        let projection = Mat4::orthographic_rh_gl(
-            -aspect * self.scale,
-            aspect * self.scale,
-            -self.scale,
-            self.scale,
-            -1.,
-            1.0,
-        );
-        let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.0, 0., 0.));
-        let model = Mat4::identity();
-        let mut uniform = shaders::sprite::VertexUniforms {
-            model,
-            view,
-            projection,
-        };
+        let mut uniform = self.camera.uniform();
 
         ctx.begin_default_pass(PassAction::Clear {
             color: Some(utils::Color::dark_gray().into()),
