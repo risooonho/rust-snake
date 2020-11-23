@@ -1,5 +1,7 @@
-use glam::Vec4;
-use miniquad::{Context, Texture};
+use glam::{Vec2, Vec4};
+use miniquad::{Buffer, BufferType, Context, Texture};
+
+use crate::shaders::Vertex;
 
 #[derive(Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Color(Vec4);
@@ -143,4 +145,30 @@ pub fn build_square_texture<T: Into<Color>>(ctx: &mut Context, width: u16, color
         }
     }
     Texture::from_rgba8(ctx, width, width, out.as_slice())
+}
+
+pub fn make_square(ctx: &mut Context, size: f32) -> (Buffer, Buffer) {
+    let vertices = [
+        Vertex {
+            pos: Vec2::new(-size / 2., -size / 2.),
+            uv: Vec2::new(0., 0.),
+        },
+        Vertex {
+            pos: Vec2::new(size / 2., -size / 2.),
+            uv: Vec2::new(1., 0.),
+        },
+        Vertex {
+            pos: Vec2::new(size / 2., size / 2.),
+            uv: Vec2::new(1., 1.),
+        },
+        Vertex {
+            pos: Vec2::new(-size / 2., size / 2.),
+            uv: Vec2::new(0., 1.),
+        },
+    ];
+    let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
+
+    let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &vertices);
+    let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
+    (vertex_buffer, index_buffer)
 }
