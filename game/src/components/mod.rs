@@ -97,7 +97,7 @@ impl WorldFood {
             let position = Vec2::new(x as f32, y as f32);
             self.world_food[index] = Food::Food { position };
             return Some(position)
-        } 
+        }
         return None
     }
 
@@ -109,5 +109,51 @@ impl WorldFood {
             acc
         });
         0
+    }
+}
+
+
+pub struct Camera2D {
+    scale: f32,
+    view: Mat4,
+    projection: Mat4,
+}
+
+impl Camera2D {
+    pub fn new(ctx: &mut Context, scale: f32) -> Camera2D {
+        let (width, height) = ctx.screen_size();
+        let aspect = width / height;
+        let projection =
+            Mat4::orthographic_rh_gl(-aspect * scale, aspect * scale, -scale, scale, -1., 1.0);
+        let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.0, 0., 0.));
+
+        Camera2D {
+            scale,
+            view,
+            projection,
+        }
+    }
+
+    pub fn resize(&mut self, ctx: &mut Context) {
+        let (width, height) = ctx.screen_size();
+        let aspect = width / height;
+        #[rustfmt::skip]
+        let projection = Mat4::orthographic_rh_gl(
+                -aspect * self.scale,
+                aspect * self.scale,
+                -self.scale,
+                self.scale,
+                -1.,
+                1.0
+                );
+        self.projection = projection;
+    }
+
+    pub fn uniform(&self) -> crate::shaders::sprite::VertexUniforms {
+        crate::shaders::sprite::VertexUniforms {
+            projection: self.projection,
+            view: self.view,
+            model: Mat4::identity(),
+        }
     }
 }

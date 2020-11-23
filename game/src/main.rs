@@ -7,51 +7,6 @@ mod components;
 mod shaders;
 mod utils;
 
-struct Camera2D {
-    scale: f32,
-    view: Mat4,
-    projection: Mat4,
-}
-
-impl Camera2D {
-    pub fn new(ctx: &mut Context, scale: f32) -> Camera2D {
-        let (width, height) = ctx.screen_size();
-        let aspect = width / height;
-        let projection =
-            Mat4::orthographic_rh_gl(-aspect * scale, aspect * scale, -scale, scale, -1., 1.0);
-        let view = Mat4::from_rotation_translation(Quat::identity(), Vec3::new(0.0, 0., 0.));
-
-        Camera2D {
-            scale,
-            view,
-            projection,
-        }
-    }
-
-    pub fn resize(&mut self, ctx: &mut Context) {
-        let (width, height) = ctx.screen_size();
-        let aspect = width / height;
-        #[rustfmt::skip]
-        let projection = Mat4::orthographic_rh_gl(
-                -aspect * self.scale,
-                aspect * self.scale,
-                -self.scale,
-                self.scale,
-                -1.,
-                1.0
-                );
-        self.projection = projection;
-    } 
-
-    pub fn uniform(&self) -> shaders::sprite::VertexUniforms {
-        shaders::sprite::VertexUniforms {
-            projection: self.projection,
-            view: self.view,
-            model: Mat4::identity(),
-        }
-    }
-}
-
 #[derive(PartialEq, Eq, Hash)]
 enum AssetType {
     Food,
@@ -61,7 +16,7 @@ type BindingAssets = HashMap<AssetType, Bindings>;
 
 
 struct Stage {
-    camera: Camera2D,
+    camera: components::Camera2D,
     bindings: BindingAssets,
     input: components::Input,
     snake_head: components::SnakeHead,
@@ -78,7 +33,7 @@ struct Position(Vec2);
 fn render_food_system(
     world: &mut hecs::World,
      ctx: &mut Context,
-    camera: &Camera2D, bindings: &BindingAssets
+    camera: &components::Camera2D, bindings: &BindingAssets
     ) {
     let mut uniform = camera.uniform();
     if let Some(binding) = bindings.get(&AssetType::Food) {
@@ -116,7 +71,7 @@ impl Stage {
 
 
         Stage {
-            camera: Camera2D::new(ctx, 20.),
+            camera: components::Camera2D::new(ctx, 20.),
             bindings,
             snake_head,
             pipeline,
