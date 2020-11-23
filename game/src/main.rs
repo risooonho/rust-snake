@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use glam::{Mat4, Quat, Vec3, Vec2};
+use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::*;
 
 mod components;
@@ -14,38 +14,42 @@ enum AssetType {
 
 type BindingAssets = HashMap<AssetType, Bindings>;
 
+struct GameWorld {
+    pub world: hecs::World,
+    pub bindings: BindingAssets,
+    pub camera: components::Camera2D,
+}
 
 struct Stage {
-    camera: components::Camera2D,
-    bindings: BindingAssets,
+    game_world: GameWorld,
     input: components::Input,
     snake_head: components::SnakeHead,
     pipeline: Pipeline,
     move_timer: components::Timer,
     food: components::WorldFood,
     food_timer: components::Timer,
-    world: hecs::World,
 }
 
 struct Food;
 struct Position(Vec2);
 
-fn render_food_system(
-    world: &mut hecs::World,
-     ctx: &mut Context,
-    camera: &components::Camera2D, bindings: &BindingAssets
-    ) {
+fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
+    let GameWorld {
+        camera,
+        world,
+        bindings,
+    } = game_world;
     let mut uniform = camera.uniform();
     if let Some(binding) = bindings.get(&AssetType::Food) {
-        for (_, (_food, pos) ) in &mut world.query::<(&Food, &Position)>() {
-                let model = Mat4::from_rotation_translation(
-                    Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
-                    Vec3::new(pos.0.x, pos.0.y, 0.),
-                );
-                uniform.model = model;
-                ctx.apply_bindings(&binding);
-                ctx.apply_uniforms(&uniform);
-                ctx.draw(0, 6, 1);
+        for (_, (_food, pos)) in &mut world.query::<(&Food, &Position)>() {
+            let model = Mat4::from_rotation_translation(
+                Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
+                Vec3::new(pos.0.x, pos.0.y, 0.),
+            );
+            uniform.model = model;
+            ctx.apply_bindings(&binding);
+            ctx.apply_uniforms(&uniform);
+            ctx.draw(0, 6, 1);
         }
     }
 }
@@ -69,25 +73,25 @@ impl Stage {
         let snake_food_binding = components::WorldFood::new_bindings(ctx);
         bindings.insert(AssetType::Food, snake_food_binding);
 
-
         Stage {
-            camera: components::Camera2D::new(ctx, 20.),
-            bindings,
+            game_world: GameWorld {
+                camera: components::Camera2D::new(ctx, 20.),
+                bindings,
+                world: hecs::World::new(),
+            },
             snake_head,
             pipeline,
             move_timer: components::Timer::new(0.4),
             input: components::Input::default(),
             food: components::WorldFood::new(ctx),
             food_timer: components::Timer::new(1.),
-            world: hecs::World::new(),
         }
     }
 }
 
 impl EventHandler for Stage {
     fn resize_event(&mut self, ctx: &mut Context, _width: f32, _height: f32) {
-        self.camera.resize(ctx);
-
+        self.game_world.camera.resize(ctx);
     }
 
     fn update(&mut self, _ctx: &mut Context) {
@@ -100,8 +104,7 @@ impl EventHandler for Stage {
         if self.food_timer.finished() {
             if let Some(position) = self.food.spawn() {
                 let pos = Position(position);
-                self.world.spawn((pos, Food));
-
+                self.game_world.world.spawn((pos, Food));
             }
             self.food_timer.reset();
         } else {
@@ -140,7 +143,7 @@ impl EventHandler for Stage {
     fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) {}
 
     fn draw(&mut self, ctx: &mut Context) {
-        let mut uniform = self.camera.uniform();
+        let mut uniform = self.game_world.camera.uniform();
 
         ctx.begin_default_pass(PassAction::Clear {
             color: Some(utils::Color::dark_gray().into()),
@@ -150,7 +153,7 @@ impl EventHandler for Stage {
         ctx.apply_pipeline(&self.pipeline);
 
         self.snake_head.draw(ctx, &mut uniform);
-        render_food_system(&mut self.world, ctx, &self.camera, &self.bindings);
+        render_food_system(&mut self.game_world, ctx);
 
         ctx.end_render_pass();
         ctx.commit_frame();
