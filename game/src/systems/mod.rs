@@ -5,9 +5,9 @@ use glam::Vec3;
 use miniquad::Context;
 use quad_rand as qrand;
 
-use crate::GameWorld;
-use crate::components;
 use crate::assets::AssetType;
+use crate::components;
+use crate::GameWorld;
 
 pub fn add_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
@@ -40,24 +40,42 @@ pub fn movement_system(game_world: &mut GameWorld) {
 }
 
 pub fn food_eating_system(game_world: &mut GameWorld) {
-    let GameWorld { world, .. } = game_world;
+    let GameWorld { world, events, .. } = game_world;
     let snake_pos = match world
         .query::<(&components::Snake, &components::Position)>()
         .iter()
         .map(|(_, (_, pos))| pos.0)
-        .nth(0) {
-            Some(it) => it,
-            _ => return,
+        .nth(0)
+    {
+        Some(it) => it,
+        _ => return,
     };
-    let entities = world
-            .query::<(&components::Food, &components::Position)>()
-            .iter()
-            .filter_map(
-                |(ent, (_food, pos))| if pos.0 == snake_pos { Some(ent) } else { None },
-            )
-            .collect::<Vec<hecs::Entity>>();
-    for entity in entities.iter() {
-        world.despawn(*entity).expect("Food Eating System should not be destroying a non-existant Entity");
+    world
+        .query::<(&components::Food, &components::Position)>()
+        .iter()
+        .filter_map(|(ent, (_food, pos))| {
+            if pos.0 == snake_pos {
+                Some((ent, pos.0))
+            } else {
+                None
+            }
+        })
+        .for_each(|(entity, pos)| {
+            events.push(crate::Event::SnakeEatFood { entity, pos });
+        });
+
+}
+
+pub fn despawn_food_system(game_world: &mut GameWorld) {
+    let GameWorld { world, events, .. } = game_world;
+    for event in events.iter() {
+        match event {
+            crate::Event::SnakeEatFood { entity, pos: _pos } => {
+                world.despawn(*entity).expect("Food Eating System should not be destroying a non-existant Entity");
+
+            }
+            _ => {}
+        }
     }
 }
 
@@ -66,6 +84,7 @@ pub fn render_snake_system(game_world: &mut GameWorld, ctx: &mut Context) {
         camera,
         world,
         bindings,
+        ..
     } = game_world;
     let mut uniform = camera.uniform();
     if let Some(binding) = bindings.get(&AssetType::Snake) {
@@ -87,6 +106,7 @@ pub fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
         camera,
         world,
         bindings,
+        ..
     } = game_world;
     let mut uniform = camera.uniform();
     if let Some(binding) = bindings.get(&AssetType::Food) {

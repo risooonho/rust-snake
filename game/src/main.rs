@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use glam::Vec2;
 use miniquad::*;
+use smallvec::SmallVec;
 
 mod components;
 mod shaders;
@@ -9,8 +10,15 @@ mod utils;
 mod systems;
 mod assets;
 
+pub enum Event {
+    Noop,
+    SnakeEatFood { entity: hecs::Entity, pos: Vec2 },
+}
+
+
 pub struct GameWorld {
     pub world: hecs::World,
+    pub events: SmallVec<[Event; 32]>,
     pub bindings: assets::BindingAssets,
     pub camera: components::Camera2D,
 }
@@ -45,6 +53,7 @@ impl Stage {
         bindings.insert(assets::AssetType::Snake, snake_bindings);
 
         let mut game_world = GameWorld {
+            events: SmallVec::new(),
             camera: components::Camera2D::new(ctx, 20.),
             bindings,
             world: hecs::World::new(),
@@ -86,7 +95,10 @@ impl EventHandler for Stage {
             self.food_timer.reset();
         } else {
         }
-        self.input = Default::default()
+
+        systems::despawn_food_system(&mut self.game_world);
+        self.input = Default::default();
+        self.game_world.events.clear();
     }
 
     fn key_down_event(

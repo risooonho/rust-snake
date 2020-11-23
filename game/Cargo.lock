@@ -20,6 +20,7 @@ dependencies = [
  "hecs",
  "miniquad",
  "quad-rand",
+ "smallvec",
 ]
 
 [[package]]
@@ -135,6 +136,12 @@ checksum = "84033aa9c68bf68fe73bc184c10515e7aa30978b802567c5045d4155f484210a"
 dependencies = [
  "winapi",
 ]
+
+[[package]]
+name = "smallvec"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7acad6f34eb9e8a259d3283d1e8c1d34d7415943d4895f65cc73813c7396fc85"
 
 [[package]]
 name = "version_check"
