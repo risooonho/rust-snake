@@ -1,10 +1,9 @@
 use glam::{Mat4, Quat, Vec3};
 use miniquad::*;
 
-mod shaders;
 mod components;
-
-
+mod shaders;
+mod utils;
 
 struct Stage {
     input: components::Input,

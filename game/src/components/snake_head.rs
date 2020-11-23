@@ -1,6 +1,8 @@
-use crate::shaders::Vertex;
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::*;
+
+use crate::shaders::Vertex;
+use crate::utils::Color;
 
 #[derive(PartialEq)]
 pub enum Direction {
@@ -40,7 +42,7 @@ impl SnakeHead {
             0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         ];
 
-        let texture = Texture::from_rgba8(ctx, 4, 4, &pixels);
+        let texture = crate::utils::build_square_texture(ctx, 4, Color::dark_gray());
         let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &vertices);
         let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
 
