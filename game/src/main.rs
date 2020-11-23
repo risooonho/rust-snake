@@ -1,22 +1,22 @@
 use std::collections::HashMap;
 
-use glam::{Mat4, Quat, Vec2, Vec3};
+use glam::Vec2;
 use miniquad::*;
-use quad_rand as qrand;
 
 mod components;
 mod shaders;
 mod utils;
+mod systems;
 
 #[derive(PartialEq, Eq, Hash)]
-enum AssetType {
+pub enum AssetType {
     Food,
     Snake,
 }
 
 type BindingAssets = HashMap<AssetType, Bindings>;
 
-struct GameWorld {
+pub struct GameWorld {
     pub world: hecs::World,
     pub bindings: BindingAssets,
     pub camera: components::Camera2D,
@@ -29,39 +29,6 @@ struct Stage {
     pipeline: Pipeline,
     move_timer: components::Timer,
     food_timer: components::Timer,
-}
-
-fn add_food_system(game_world: &mut GameWorld) {
-    let GameWorld { world, .. } = game_world;
-    let snake_count = world.query::<&components::Food>().iter().count();
-    if snake_count >= 10 {
-        return;
-    }
-
-    let x = qrand::gen_range(-24, 24);
-    let y = qrand::gen_range(-15, 15);
-    let pos = components::Position(Vec2::new(x as f32, y as f32));
-    world.spawn((pos, components::Food));
-}
-fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
-    let GameWorld {
-        camera,
-        world,
-        bindings,
-    } = game_world;
-    let mut uniform = camera.uniform();
-    if let Some(binding) = bindings.get(&AssetType::Food) {
-        for (_, (_food, pos)) in &mut world.query::<(&components::Food, &components::Position)>() {
-            let model = Mat4::from_rotation_translation(
-                Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
-                Vec3::new(pos.0.x, pos.0.y, 0.),
-            );
-            uniform.model = model;
-            ctx.apply_bindings(&binding);
-            ctx.apply_uniforms(&uniform);
-            ctx.draw(0, 6, 1);
-        }
-    }
 }
 
 impl Stage {
@@ -120,7 +87,7 @@ impl EventHandler for Stage {
             self.snake_head.update_direction(&self.input);
         }
         if self.food_timer.finished() {
-            add_food_system(&mut self.game_world);
+            systems::add_food_system(&mut self.game_world);
             self.food_timer.reset();
         } else {
         }
@@ -168,7 +135,7 @@ impl EventHandler for Stage {
         ctx.apply_pipeline(&self.pipeline);
 
         self.snake_head.draw(ctx, &mut uniform);
-        render_food_system(&mut self.game_world, ctx);
+        systems::render_food_system(&mut self.game_world, ctx);
 
         ctx.end_render_pass();
         ctx.commit_frame();
