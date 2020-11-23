@@ -59,9 +59,9 @@ impl Stage {
             direction: components::Direction::Up,
             game_world,
             pipeline,
-            move_timer: components::Timer::new(0.4),
+            move_timer: components::Timer::new(0.25),
             input: components::Input::default(),
-            food_timer: components::Timer::new(1.),
+            food_timer: components::Timer::new(1.5),
         }
     }
 }
