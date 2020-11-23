@@ -42,3 +42,32 @@ pub fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
         }
     }
 }
+
+pub fn movement_system(game_world: &mut GameWorld) {
+    let GameWorld { world, .. } = game_world;
+    for (_, (pos, velocity)) in &mut world.query::<(&mut components::Position, &components::Velocity)>() {
+        pos.0 = pos.0 + velocity.0;
+    }
+}
+
+pub fn render_snake_system(game_world: &mut GameWorld, ctx: &mut Context) {
+    let GameWorld {
+        camera,
+        world,
+        bindings,
+    } = game_world;
+    let mut uniform = camera.uniform();
+    if let Some(binding) = bindings.get(&AssetType::Snake) {
+        for (_, (_food, pos)) in &mut world.query::<(&components::Snake, &components::Position)>() {
+            let model = Mat4::from_rotation_translation(
+                Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
+                Vec3::new(pos.0.x, pos.0.y, 0.),
+            );
+            uniform.model = model;
+            ctx.apply_bindings(&binding);
+            ctx.apply_uniforms(&uniform);
+            ctx.draw(0, 6, 1);
+        }
+    }
+
+}

@@ -81,6 +81,7 @@ impl EventHandler for Stage {
 
     fn update(&mut self, _ctx: &mut Context) {
         if self.move_timer.finished() {
+            systems::movement_system(&mut self.game_world);
             self.snake_head.step();
             self.move_timer.reset();
         } else {
@@ -136,6 +137,7 @@ impl EventHandler for Stage {
 
         self.snake_head.draw(ctx, &mut uniform);
         systems::render_food_system(&mut self.game_world, ctx);
+        systems::render_snake_system(&mut self.game_world, ctx);
 
         ctx.end_render_pass();
         ctx.commit_frame();

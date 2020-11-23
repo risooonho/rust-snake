@@ -67,11 +67,16 @@ impl SnakeHead {
     }
 
     pub fn step(&mut self) {
+        let velocicty = self.velocity();
+        self.position += velocicty;
+    }
+
+    pub fn velocity(&self) -> Vec2 {
         match self.direction {
-            Direction::Up => self.position += Vec2::new(0., 1.),
-            Direction::Right => self.position += Vec2::new(1., 0.),
-            Direction::Down => self.position += Vec2::new(0., -1.),
-            Direction::Left => self.position += Vec2::new(-1., 0.),
+            Direction::Up => Vec2::new(0., 1.),
+            Direction::Right => Vec2::new(1., 0.),
+            Direction::Down => Vec2::new(0., -1.),
+            Direction::Left => Vec2::new(-1., 0.),
         }
     }
 
