@@ -24,7 +24,6 @@ pub struct SnakeHead {
 }
 impl SnakeHead {
     pub fn new(ctx: &mut Context) -> SnakeHead {
-        #[rustfmt::skip]
         let texture = crate::utils::build_square_texture(ctx, 4, Color::ray_white());
         let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 1.);
 

@@ -11,6 +11,7 @@ struct Stage {
     scale: f32,
     pipeline: Pipeline,
     move_timer: components::Timer,
+    food: components::WorldFood,
 }
 
 impl Stage {
@@ -35,6 +36,7 @@ impl Stage {
             scale: 20.,
             move_timer: components::Timer::new(0.4),
             input: components::Input::default(),
+            food: components::WorldFood::new(ctx),
         }
     }
 }
@@ -106,6 +108,7 @@ impl EventHandler for Stage {
         ctx.apply_pipeline(&self.pipeline);
 
         self.snake_head.draw(ctx, &mut uniform);
+        self.food.draw(ctx, &mut uniform);
 
         ctx.end_render_pass();
         ctx.commit_frame();

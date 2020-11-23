@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 miniquad = "0.3.0-alpha.22"
 glam = "0.10.2"
+quad-rand = "0.1.1"

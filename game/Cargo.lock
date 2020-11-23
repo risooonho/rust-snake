@@ -12,6 +12,7 @@ version = "0.1.0"
 dependencies = [
  "glam",
  "miniquad",
+ "quad-rand",
 ]
 
 [[package]]
@@ -43,6 +44,12 @@ dependencies = [
  "sapp-wasm",
  "sapp-windows",
 ]
+
+[[package]]
+name = "quad-rand"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec3e8eb9b1d9b58a43bac8f20985768ddcc03b928a909d4d39ced327b971fec5"
 
 [[package]]
 name = "sapp-android"
