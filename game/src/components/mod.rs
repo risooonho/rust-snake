@@ -2,13 +2,10 @@ mod snake_head;
 
 use glam::Mat4;
 use glam::Quat;
-use glam::Vec2;
 use glam::Vec3;
 use miniquad::date;
-use miniquad::{Bindings, Context};
-use quad_rand as qrand;
+use miniquad::Context;
 
-use crate::utils::{build_square_texture, make_square, Color};
 
 pub use self::snake_head::SnakeHead;
 
@@ -40,75 +37,6 @@ impl Timer {
     pub fn finished(&self) -> bool {
         let now = date::now();
         return (now - self.start) > self.duration;
-    }
-}
-
-#[derive(PartialEq, Clone, Copy)]
-pub enum Food {
-    None,
-    Food { position: Vec2 },
-}
-
-pub struct WorldFood {
-    pub bindings: Bindings,
-    pub world_food: [Food; 10],
-}
-
-impl WorldFood {
-    pub fn new_bindings(ctx: &mut Context) -> Bindings {
-        let texture = build_square_texture(ctx, 4, Color::purple());
-        let (vertex_buffer, index_buffer) = make_square(ctx, 0.8);
-
-        Bindings {
-            vertex_buffers: vec![vertex_buffer],
-            index_buffer,
-            images: vec![texture],
-        }
-    }
-
-    pub fn new(ctx: &mut Context) -> Self {
-        let bindings = WorldFood::new_bindings(ctx);
-
-        WorldFood {
-            bindings,
-            world_food: [
-                Food::None,
-                Food::None,
-                Food::None,
-                Food::None,
-                Food::None,
-                Food::None,
-                Food::None,
-                Food::None,
-                Food::None,
-                Food::None,
-            ],
-        }
-    }
-
-    pub fn spawn(&mut self) -> Option<Vec2> {
-        if self.count() == self.world_food.len() {
-            return None;
-        }
-
-        let x = qrand::gen_range(-24, 24);
-        let y = qrand::gen_range(-15, 15);
-        if let Some(index) = self.world_food.iter().position(|food| food == &Food::None) {
-            let position = Vec2::new(x as f32, y as f32);
-            self.world_food[index] = Food::Food { position };
-            return Some(position);
-        }
-        return None;
-    }
-
-    fn count(&self) -> usize {
-        self.world_food.iter().fold(0, |mut acc, food| {
-            if &Food::None != food {
-                acc += 1;
-            }
-            acc
-        });
-        0
     }
 }
 

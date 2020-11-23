@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use glam::{Mat4, Quat, Vec2, Vec3};
+use quad_rand as qrand;
 use miniquad::*;
 
 mod components;
@@ -26,13 +27,39 @@ struct Stage {
     snake_head: components::SnakeHead,
     pipeline: Pipeline,
     move_timer: components::Timer,
-    food: components::WorldFood,
     food_timer: components::Timer,
 }
 
 struct Food;
+
+impl Food {
+    pub fn new_bindings(ctx: &mut Context) -> Bindings {
+        let texture = crate::utils::build_square_texture(ctx, 4, crate::utils::Color::purple());
+        let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
+
+        Bindings {
+            vertex_buffers: vec![vertex_buffer],
+            index_buffer,
+            images: vec![texture],
+        }
+    }
+}
 struct Position(Vec2);
 
+fn add_food_system(game_world: &mut GameWorld) {
+    let GameWorld { world, .. } = game_world;
+    let snake_count = world.query::<&Food>().iter().count();
+    if snake_count >= 10 {
+        return;
+    }
+
+    let x = qrand::gen_range(-24, 24);
+    let y = qrand::gen_range(-15, 15);
+    let pos = Position(Vec2::new(x as f32, y as f32));
+    world.spawn((pos, Food));
+
+
+}
 fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
     let GameWorld {
         camera,
@@ -70,7 +97,7 @@ impl Stage {
 
         let snake_head = components::SnakeHead::new(ctx);
         let mut bindings = HashMap::new();
-        let snake_food_binding = components::WorldFood::new_bindings(ctx);
+        let snake_food_binding = Food::new_bindings(ctx);
         bindings.insert(AssetType::Food, snake_food_binding);
 
         Stage {
@@ -83,7 +110,6 @@ impl Stage {
             pipeline,
             move_timer: components::Timer::new(0.4),
             input: components::Input::default(),
-            food: components::WorldFood::new(ctx),
             food_timer: components::Timer::new(1.),
         }
     }
@@ -102,10 +128,7 @@ impl EventHandler for Stage {
             self.snake_head.update_direction(&self.input);
         }
         if self.food_timer.finished() {
-            if let Some(position) = self.food.spawn() {
-                let pos = Position(position);
-                self.game_world.world.spawn((pos, Food));
-            }
+            add_food_system(&mut self.game_world);
             self.food_timer.reset();
         } else {
         }
