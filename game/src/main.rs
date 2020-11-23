@@ -7,18 +7,11 @@ mod components;
 mod shaders;
 mod utils;
 mod systems;
-
-#[derive(PartialEq, Eq, Hash)]
-pub enum AssetType {
-    Food,
-    Snake,
-}
-
-type BindingAssets = HashMap<AssetType, Bindings>;
+mod assets;
 
 pub struct GameWorld {
     pub world: hecs::World,
-    pub bindings: BindingAssets,
+    pub bindings: assets::BindingAssets,
     pub camera: components::Camera2D,
 }
 
@@ -48,8 +41,8 @@ impl Stage {
         let mut bindings = HashMap::new();
         let snake_food_binding = components::Food::new_bindings(ctx);
         let snake_bindings = components::Snake::new_bindings(ctx);
-        bindings.insert(AssetType::Food, snake_food_binding);
-        bindings.insert(AssetType::Snake, snake_bindings);
+        bindings.insert(assets::AssetType::Food, snake_food_binding);
+        bindings.insert(assets::AssetType::Snake, snake_bindings);
 
         let mut game_world = GameWorld {
             camera: components::Camera2D::new(ctx, 20.),

@@ -6,7 +6,8 @@ use miniquad::Context;
 use quad_rand as qrand;
 
 use crate::GameWorld;
-use crate::{components, AssetType};
+use crate::components;
+use crate::assets::AssetType;
 
 pub fn add_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
