@@ -5,20 +5,15 @@ use miniquad::*;
 use smallvec::SmallVec;
 
 mod components;
+mod events;
 mod shaders;
 mod utils;
 mod systems;
 mod assets;
 
-pub enum Event {
-    Noop,
-    SnakeEatFood { entity: hecs::Entity, pos: Vec2 },
-}
-
-
 pub struct GameWorld {
     pub world: hecs::World,
-    pub events: SmallVec<[Event; 32]>,
+    pub events: SmallVec<[events::Event; 32]>,
     pub bindings: assets::BindingAssets,
     pub camera: components::Camera2D,
 }

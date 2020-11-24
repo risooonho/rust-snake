@@ -8,6 +8,7 @@ use quad_rand as qrand;
 use crate::assets::AssetType;
 use crate::components;
 use crate::GameWorld;
+use crate::events::Event;
 
 pub fn add_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
@@ -61,7 +62,7 @@ pub fn food_eating_system(game_world: &mut GameWorld) {
             }
         })
         .for_each(|(entity, pos)| {
-            events.push(crate::Event::SnakeEatFood { entity, pos });
+            events.push(Event::SnakeEatFood { entity, pos });
         });
 
 }
@@ -70,7 +71,7 @@ pub fn despawn_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
     for event in events.iter() {
         match event {
-            crate::Event::SnakeEatFood { entity, pos: _pos } => {
+            Event::SnakeEatFood { entity, pos: _pos } => {
                 world.despawn(*entity).expect("Food Eating System should not be destroying a non-existant Entity");
 
             }
