@@ -67,7 +67,6 @@ impl Stage {
         game_world.world.spawn((
             tail,
             components::Position(Vec2::new(0., -1.)),
-            components::Velocity(Vec2::new(0., 1.)),
         ));
 
         Stage {
@@ -89,6 +88,7 @@ impl EventHandler for Stage {
     fn update(&mut self, _ctx: &mut Context) {
         self.direction.update(&self.input);
         if self.move_timer.finished() {
+            systems::tail_movement_system(&mut self.game_world);
             systems::movement_system(&mut self.game_world);
             systems::food_eating_system(&mut self.game_world);
             self.move_timer.reset();

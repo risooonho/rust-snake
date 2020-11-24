@@ -40,6 +40,16 @@ pub fn movement_system(game_world: &mut GameWorld) {
     }
 }
 
+pub fn tail_movement_system(game_world: &mut GameWorld) {
+    let GameWorld { world, .. } = game_world;
+    for (_, (mut pos, components::Tail{ ahead })) in &mut world.query::<(&mut components::Position, &components::Tail)>() {
+        if let Some(new_pos) = world.get::<components::Position>(ahead.clone()).ok() {
+            pos.0 = new_pos.0;
+        }
+    }
+}
+
+
 pub fn food_eating_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
     let snake_pos = match world
