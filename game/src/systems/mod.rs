@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use glam::Mat4;
 use glam::Quat;
 use glam::Vec2;
 use glam::Vec3;
 use miniquad::Context;
-use smallvec::SmallVec;
 use quad_rand as qrand;
+use smallvec::SmallVec;
 
 use crate::assets::AssetType;
 use crate::components;
@@ -43,13 +45,15 @@ pub fn movement_system(game_world: &mut GameWorld) {
 
 pub fn tail_movement_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
-    for (_, (mut pos, components::Tail { ahead, .. })) in
-        &mut world.query::<(&mut components::Position, &components::Tail)>()
-    {
-        if let Some(new_pos) = world.get::<components::Position>(ahead.clone()).ok() {
-            pos.0 = new_pos.0;
-        }
+    let foo: HashMap<hecs::Entity, glam::Vec2> = world.query::<&components::Tail>().iter().map(|(_, tail)| {
+        let pos = { world.get::<components::Position>(tail.ahead).expect("All Ahead should has Positions").0 };
+        (tail.ahead.clone(), pos)
+    }).collect();
+    for (_, (tail, position)) in &mut world.query::<(&components::Tail, &mut components::Position)>() {
+        let new_pos = foo[&tail.ahead];
+        position.0 = new_pos;
     }
+
 }
 
 pub fn food_eating_system(game_world: &mut GameWorld) {
@@ -102,19 +106,45 @@ pub fn trigger_tail_spawn(game_world: &mut GameWorld) {
     for event in events.iter() {
         match event {
             Event::SnakeEatFood { .. } => {
-                if let Some((ahead, (_, pos))) = &world
+                if let Some((ahead, (tail, pos))) = &world
                     .query::<(&components::Tail, &components::Position)>()
                     .iter()
                     .max_by_key(|(_, (tail, _))| tail.segment)
                 {
-                    events_to_push.push(Event::SpawnSnakeTail { ahead: ahead.clone(), pos: pos.0 })
-
+                    events_to_push.push(Event::SpawnSnakeTail {
+                        ahead: ahead.clone(),
+                        pos: pos.0,
+                        segment: tail.segment + 1,
+                    })
                 }
             }
             _ => {}
         }
     }
-    events_to_push.iter().for_each(|evt| events.push(evt.clone()));
+    events_to_push
+        .iter()
+        .for_each(|evt| events.push(evt.clone()));
+}
+
+pub fn spawn_tail_system(game_world: &mut GameWorld) {
+    let GameWorld { world, events, .. } = game_world;
+    for event in events.iter() {
+        match event {
+            Event::SpawnSnakeTail {
+                ahead,
+                pos,
+                segment,
+            } => {
+                let tail = components::Tail {
+                    segment: segment.clone(),
+                    ahead: ahead.clone(),
+                };
+
+                world.spawn((tail, components::Position(pos.clone())));
+            }
+            _ => {}
+        }
+    }
 }
 
 pub fn render_snake_system(game_world: &mut GameWorld, ctx: &mut Context) {

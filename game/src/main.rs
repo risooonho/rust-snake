@@ -93,6 +93,7 @@ impl EventHandler for Stage {
             systems::food_eating_system(&mut self.game_world);
             systems::trigger_tail_spawn(&mut self.game_world);
             systems::movement_system(&mut self.game_world);
+            systems::spawn_tail_system(&mut self.game_world);
             self.move_timer.reset();
         } else {
             let direction = self.direction.velocity();
