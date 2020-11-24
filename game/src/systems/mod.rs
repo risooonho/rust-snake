@@ -42,7 +42,7 @@ pub fn movement_system(game_world: &mut GameWorld) {
 
 pub fn tail_movement_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
-    for (_, (mut pos, components::Tail{ ahead })) in &mut world.query::<(&mut components::Position, &components::Tail)>() {
+    for (_, (mut pos, components::Tail{ ahead, ..})) in &mut world.query::<(&mut components::Position, &components::Tail)>() {
         if let Some(new_pos) = world.get::<components::Position>(ahead.clone()).ok() {
             pos.0 = new_pos.0;
         }
@@ -53,9 +53,9 @@ pub fn tail_movement_system(game_world: &mut GameWorld) {
 pub fn food_eating_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
     let snake_pos = match world
-        .query::<(&components::Snake, &components::Position)>()
+        .query::<(&components::Snake, &components::Position, &components::Velocity)>()
         .iter()
-        .map(|(_, (_, pos))| pos.0)
+        .map(|(_, (_, pos, vel))| pos.0 + vel.0)
         .nth(0)
     {
         Some(it) => it,
@@ -66,7 +66,7 @@ pub fn food_eating_system(game_world: &mut GameWorld) {
         .iter()
         .filter_map(|(ent, (_food, pos))| {
             if pos.0 == snake_pos {
-                Some((ent, pos.0))
+                Some((ent, snake_pos))
             } else {
                 None
             }

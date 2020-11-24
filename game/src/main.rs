@@ -61,6 +61,7 @@ impl Stage {
             components::Velocity(Vec2::new(0., 1.)),
         ));
         let tail = components::Tail{
+            segment: 1,
             ahead,
         };
 
@@ -89,8 +90,8 @@ impl EventHandler for Stage {
         self.direction.update(&self.input);
         if self.move_timer.finished() {
             systems::tail_movement_system(&mut self.game_world);
-            systems::movement_system(&mut self.game_world);
             systems::food_eating_system(&mut self.game_world);
+            systems::movement_system(&mut self.game_world);
             self.move_timer.reset();
         } else {
             let direction = self.direction.velocity();

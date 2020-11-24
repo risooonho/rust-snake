@@ -116,6 +116,7 @@ impl Food {
 }
 
 pub struct Tail {
+    pub segment: usize,
     pub ahead: hecs::Entity,
 }
 impl Tail {
