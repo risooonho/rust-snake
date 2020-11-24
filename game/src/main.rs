@@ -99,7 +99,6 @@ impl EventHandler for Stage {
         if self.food_timer.finished() {
             systems::add_food_system(&mut self.game_world);
             self.food_timer.reset();
-        } else {
         }
 
         systems::despawn_food_system(&mut self.game_world);
