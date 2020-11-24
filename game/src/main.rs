@@ -91,6 +91,7 @@ impl EventHandler for Stage {
         if self.move_timer.finished() {
             systems::tail_movement_system(&mut self.game_world);
             systems::food_eating_system(&mut self.game_world);
+            systems::trigger_tail_spawn(&mut self.game_world);
             systems::movement_system(&mut self.game_world);
             self.move_timer.reset();
         } else {

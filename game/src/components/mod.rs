@@ -119,6 +119,8 @@ pub struct Tail {
     pub segment: usize,
     pub ahead: hecs::Entity,
 }
+
+
 impl Tail {
     pub fn new_bindings(ctx: &mut Context) -> miniquad::Bindings {
         let texture = crate::utils::build_square_texture(ctx, 4, crate::utils::Color::ray_white());

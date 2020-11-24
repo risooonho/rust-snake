@@ -3,12 +3,13 @@ use glam::Quat;
 use glam::Vec2;
 use glam::Vec3;
 use miniquad::Context;
+use smallvec::SmallVec;
 use quad_rand as qrand;
 
 use crate::assets::AssetType;
 use crate::components;
-use crate::GameWorld;
 use crate::events::Event;
+use crate::GameWorld;
 
 pub fn add_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
@@ -42,18 +43,23 @@ pub fn movement_system(game_world: &mut GameWorld) {
 
 pub fn tail_movement_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
-    for (_, (mut pos, components::Tail{ ahead, ..})) in &mut world.query::<(&mut components::Position, &components::Tail)>() {
+    for (_, (mut pos, components::Tail { ahead, .. })) in
+        &mut world.query::<(&mut components::Position, &components::Tail)>()
+    {
         if let Some(new_pos) = world.get::<components::Position>(ahead.clone()).ok() {
             pos.0 = new_pos.0;
         }
     }
 }
 
-
 pub fn food_eating_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
     let snake_pos = match world
-        .query::<(&components::Snake, &components::Position, &components::Velocity)>()
+        .query::<(
+            &components::Snake,
+            &components::Position,
+            &components::Velocity,
+        )>()
         .iter()
         .map(|(_, (_, pos, vel))| pos.0 + vel.0)
         .nth(0)
@@ -74,20 +80,41 @@ pub fn food_eating_system(game_world: &mut GameWorld) {
         .for_each(|(entity, pos)| {
             events.push(Event::SnakeEatFood { entity, pos });
         });
-
 }
 
 pub fn despawn_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
-    for event in events.iter() {
+    for event in events {
         match event {
             Event::SnakeEatFood { entity, pos: _pos } => {
-                world.despawn(*entity).expect("Food Eating System should not be destroying a non-existant Entity");
-
+                world
+                    .despawn(*entity)
+                    .expect("Food Eating System should not be destroying a non-existant Entity");
             }
             _ => {}
         }
     }
+}
+
+pub fn trigger_tail_spawn(game_world: &mut GameWorld) {
+    let GameWorld { world, events, .. } = game_world;
+    let mut events_to_push: SmallVec<[Event; 4]> = SmallVec::new();
+    for event in events.iter() {
+        match event {
+            Event::SnakeEatFood { .. } => {
+                if let Some((ahead, (_, pos))) = &world
+                    .query::<(&components::Tail, &components::Position)>()
+                    .iter()
+                    .max_by_key(|(_, (tail, _))| tail.segment)
+                {
+                    events_to_push.push(Event::SpawnSnakeTail { ahead: ahead.clone(), pos: pos.0 })
+
+                }
+            }
+            _ => {}
+        }
+    }
+    events_to_push.iter().for_each(|evt| events.push(evt.clone()));
 }
 
 pub fn render_snake_system(game_world: &mut GameWorld, ctx: &mut Context) {
