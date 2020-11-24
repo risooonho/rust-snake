@@ -114,5 +114,21 @@ impl Food {
         }
     }
 }
+
+pub struct Tail {
+    pub ahead: hecs::Entity,
+}
+impl Tail {
+    pub fn new_bindings(ctx: &mut Context) -> miniquad::Bindings {
+        let texture = crate::utils::build_square_texture(ctx, 4, crate::utils::Color::ray_white());
+        let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
+
+        miniquad::Bindings {
+            vertex_buffers: vec![vertex_buffer],
+            index_buffer,
+            images: vec![texture],
+        }
+    }
+}
 pub struct Position( pub Vec2);
 pub struct Velocity( pub Vec2);

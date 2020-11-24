@@ -44,8 +44,10 @@ impl Stage {
         let mut bindings = HashMap::new();
         let snake_food_binding = components::Food::new_bindings(ctx);
         let snake_bindings = components::Snake::new_bindings(ctx);
+        let tail_bindings = components::Tail::new_bindings(ctx);
         bindings.insert(assets::AssetType::Food, snake_food_binding);
         bindings.insert(assets::AssetType::Snake, snake_bindings);
+        bindings.insert(assets::AssetType::Tail, tail_bindings);
 
         let mut game_world = GameWorld {
             events: SmallVec::new(),
@@ -53,9 +55,18 @@ impl Stage {
             bindings,
             world: hecs::World::new(),
         };
-        game_world.world.spawn((
+        let ahead = game_world.world.spawn((
             components::Snake,
             components::Position(Vec2::new(0., 0.)),
+            components::Velocity(Vec2::new(0., 1.)),
+        ));
+        let tail = components::Tail{
+            ahead,
+        };
+
+        game_world.world.spawn((
+            tail,
+            components::Position(Vec2::new(0., -1.)),
             components::Velocity(Vec2::new(0., 1.)),
         ));
 
@@ -136,6 +147,7 @@ impl EventHandler for Stage {
 
         systems::render_food_system(&mut self.game_world, ctx);
         systems::render_snake_system(&mut self.game_world, ctx);
+        systems::render_tail_system(&mut self.game_world, ctx);
 
         ctx.end_render_pass();
         ctx.commit_frame();

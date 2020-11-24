@@ -6,6 +6,7 @@ use miniquad::Bindings;
 pub enum AssetType {
     Food,
     Snake,
+    Tail,
 }
 
 pub type BindingAssets = HashMap<AssetType, Bindings>;
