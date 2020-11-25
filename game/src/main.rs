@@ -144,7 +144,7 @@ impl EventHandler for Stage {
 
     fn draw(&mut self, ctx: &mut Context) {
         ctx.begin_default_pass(PassAction::Clear {
-            color: Some(utils::Color::dark_gray().into()),
+            color: Some(utils::colors::DARKGRAY.into()),
             depth: Some(1.),
             stencil: None,
         });
