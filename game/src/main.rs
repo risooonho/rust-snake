@@ -10,6 +10,7 @@ mod shaders;
 mod utils;
 mod systems;
 mod assets;
+mod graphics;
 
 pub struct GameWorld {
     pub world: hecs::World,
@@ -144,7 +145,7 @@ impl EventHandler for Stage {
 
     fn draw(&mut self, ctx: &mut Context) {
         ctx.begin_default_pass(PassAction::Clear {
-            color: Some(utils::colors::DARKGRAY.into()),
+            color: Some(graphics::colors::DARKGRAY.into()),
             depth: Some(1.),
             stencil: None,
         });

@@ -89,7 +89,7 @@ pub struct Snake;
 
 impl Snake {
     pub fn new_bindings(ctx: &mut Context) -> miniquad::Bindings {
-        let texture = crate::utils::build_square_texture(ctx, 4, crate::utils::colors::RAYWHITE);
+        let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
         let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 1.);
 
         miniquad::Bindings {
@@ -104,7 +104,7 @@ pub struct Food;
 
 impl Food {
     pub fn new_bindings(ctx: &mut Context) -> miniquad::Bindings {
-        let texture = crate::utils::build_square_texture(ctx, 4, crate::utils::colors::PURPLE);
+        let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
         let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
 
         miniquad::Bindings {
@@ -123,7 +123,7 @@ pub struct Tail {
 
 impl Tail {
     pub fn new_bindings(ctx: &mut Context) -> miniquad::Bindings {
-        let texture = crate::utils::build_square_texture(ctx, 4, crate::utils::colors::RAYWHITE);
+        let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
         let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
 
         miniquad::Bindings {
