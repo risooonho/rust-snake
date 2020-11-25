@@ -67,7 +67,7 @@ impl Stage {
 
         game_world.world.spawn((
             tail,
-            components::Collision,
+            components::Collision::snake(),
            components::Position(Vec2::new(0., -1.)),
         ));
 

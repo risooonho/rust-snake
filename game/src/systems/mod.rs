@@ -150,7 +150,7 @@ pub fn spawn_tail_system(game_world: &mut GameWorld) {
                     ahead: ahead.clone(),
                 };
 
-                world.spawn((tail, components::Collision, components::Position(pos.clone())));
+                world.spawn((tail, components::Collision::snake(), components::Position(pos.clone())));
             }
             _ => {}
         }
@@ -241,12 +241,13 @@ pub fn head_collision_system(game_world: &mut GameWorld) {
     world
         .query::<(&components::Position, &components::Collision)>()
         .iter()
-        .filter_map(|(ent, (target_pos, _))| {
+        .filter_map(|(ent, (target_pos, col))| {
             if target_pos.0 == source_pos {
                 Some(Event::Collision {
                     target: ent,
                     source: source_ent,
                     pos: target_pos.0,
+                    kind: col.kind,
                 })
             } else {
                 None
@@ -263,7 +264,10 @@ pub fn handle_collision_system(game_world: &mut GameWorld) {
         }
     });
     game_world.events = rest;
-    collsions.iter().for_each(|_| game_world.events.push(Event::GameOver));
+    collsions.iter().for_each(|collision| match collision {
+        Event::Collision { kind: components::CollsionKind::Snake, .. } => game_world.events.push(Event::GameOver),
+        _ => {}
+    });
 }
 
 pub fn game_over_system(game_world: &mut GameWorld) {

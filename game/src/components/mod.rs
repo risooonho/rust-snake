@@ -135,4 +135,26 @@ impl Tail {
 }
 pub struct Position( pub Vec2);
 pub struct Velocity( pub Vec2);
-pub struct Collision;
+
+#[derive(Debug, Copy, Clone)]
+pub enum CollsionKind {
+    Snake,
+    Food,
+}
+pub struct Collision {
+    pub kind: CollsionKind,
+}
+
+impl Collision {
+    pub fn snake() -> Self {
+        Self {
+            kind: CollsionKind::Snake,
+        }
+    }
+
+    pub fn food() -> Self {
+        Self {
+            kind: CollsionKind::Food,
+        }
+    }
+}
