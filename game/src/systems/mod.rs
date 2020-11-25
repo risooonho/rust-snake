@@ -23,7 +23,7 @@ pub fn add_food_system(game_world: &mut GameWorld) {
     let x = qrand::gen_range(-24, 24);
     let y = qrand::gen_range(-15, 15);
     let pos = components::Position(Vec2::new(x as f32, y as f32));
-    world.spawn((pos, components::Food));
+    world.spawn((pos, components::Collision::food(), components::Food));
 }
 
 pub fn update_head_direction(game_world: &mut GameWorld, direction: Vec2) {
@@ -64,36 +64,6 @@ pub fn tail_movement_system(game_world: &mut GameWorld) {
         let new_pos = foo[&tail.ahead];
         position.0 = new_pos;
     }
-}
-
-pub fn food_eating_system(game_world: &mut GameWorld) {
-    let GameWorld { world, events, .. } = game_world;
-    let snake_pos = match world
-        .query::<(
-            &components::Snake,
-            &components::Position,
-            &components::Velocity,
-        )>()
-        .iter()
-        .map(|(_, (_, pos, vel))| pos.0 + vel.0)
-        .nth(0)
-    {
-        Some(it) => it,
-        _ => return,
-    };
-    world
-        .query::<(&components::Food, &components::Position)>()
-        .iter()
-        .filter_map(|(ent, (_food, pos))| {
-            if pos.0 == snake_pos {
-                Some((ent, snake_pos))
-            } else {
-                None
-            }
-        })
-        .for_each(|(entity, pos)| {
-            events.push(Event::SnakeEatFood { entity, pos });
-        });
 }
 
 pub fn despawn_food_system(game_world: &mut GameWorld) {
@@ -266,6 +236,11 @@ pub fn handle_collision_system(game_world: &mut GameWorld) {
     game_world.events = rest;
     collsions.iter().for_each(|collision| match collision {
         Event::Collision { kind: components::CollsionKind::Snake, .. } => game_world.events.push(Event::GameOver),
+        Event::Collision { kind: components::CollsionKind::Food, target, .. } => {
+            let entity = target.clone();
+            let pos = game_world.world.get::<components::Position>(entity).expect("Food should have components::Position");
+            game_world.events.push(Event::SnakeEatFood { entity, pos: pos.0 });
+        }
         _ => {}
     });
 }
