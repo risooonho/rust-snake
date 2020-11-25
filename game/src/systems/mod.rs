@@ -150,7 +150,7 @@ pub fn spawn_tail_system(game_world: &mut GameWorld) {
                     ahead: ahead.clone(),
                 };
 
-                world.spawn((tail, components::Position(pos.clone())));
+                world.spawn((tail, components::Collision, components::Position(pos.clone())));
             }
             _ => {}
         }
@@ -239,9 +239,9 @@ pub fn head_collision_system(game_world: &mut GameWorld) {
         _ => return,
     };
     world
-        .query::<(&components::Position, &components::Tail)>()
+        .query::<(&components::Position, &components::Collision)>()
         .iter()
-        .filter_map(|(ent, (target_pos, _tail))| {
+        .filter_map(|(ent, (target_pos, _))| {
             if target_pos.0 == source_pos {
                 Some(Event::Collision {
                     target: ent,
@@ -276,5 +276,4 @@ pub fn game_over_system(game_world: &mut GameWorld) {
     if let Some(_) = filter {
         world.clear();
     }
-
 }

@@ -135,3 +135,4 @@ impl Tail {
 }
 pub struct Position( pub Vec2);
 pub struct Velocity( pub Vec2);
+pub struct Collision;
