@@ -77,7 +77,7 @@ impl Stage {
             pipeline,
             move_timer: components::Timer::new(0.25),
             input: components::Input::default(),
-            food_timer: components::Timer::new(1.5),
+            food_timer: components::Timer::new(0.5),
         }
     }
 }
