@@ -45,15 +45,25 @@ pub fn movement_system(game_world: &mut GameWorld) {
 
 pub fn tail_movement_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
-    let foo: HashMap<hecs::Entity, glam::Vec2> = world.query::<&components::Tail>().iter().map(|(_, tail)| {
-        let pos = { world.get::<components::Position>(tail.ahead).expect("All Ahead should has Positions").0 };
-        (tail.ahead.clone(), pos)
-    }).collect();
-    for (_, (tail, position)) in &mut world.query::<(&components::Tail, &mut components::Position)>() {
+    let foo: HashMap<hecs::Entity, glam::Vec2> = world
+        .query::<&components::Tail>()
+        .iter()
+        .map(|(_, tail)| {
+            let pos = {
+                world
+                    .get::<components::Position>(tail.ahead)
+                    .expect("All Ahead should has Positions")
+                    .0
+            };
+            (tail.ahead.clone(), pos)
+        })
+        .collect();
+    for (_, (tail, position)) in
+        &mut world.query::<(&components::Tail, &mut components::Position)>()
+    {
         let new_pos = foo[&tail.ahead];
         position.0 = new_pos;
     }
-
 }
 
 pub fn food_eating_system(game_world: &mut GameWorld) {
@@ -211,4 +221,60 @@ pub fn render_tail_system(game_world: &mut GameWorld, ctx: &mut Context) {
             ctx.draw(0, 6, 1);
         }
     }
+}
+
+pub fn head_collision_system(game_world: &mut GameWorld) {
+    let GameWorld { world, events, .. } = game_world;
+    let (source_ent, source_pos): (hecs::Entity, Vec2) = match world
+        .query::<(
+            &components::Snake,
+            &components::Position,
+            &components::Velocity,
+        )>()
+        .iter()
+        .map(|(ent, (_, pos, vel))| (ent, pos.0 + vel.0))
+        .nth(0)
+    {
+        Some(it) => it,
+        _ => return,
+    };
+    world
+        .query::<(&components::Position, &components::Tail)>()
+        .iter()
+        .filter_map(|(ent, (target_pos, _tail))| {
+            if target_pos.0 == source_pos {
+                Some(Event::Collision {
+                    target: ent,
+                    source: source_ent,
+                    pos: target_pos.0,
+                })
+            } else {
+                None
+            }
+        })
+        .for_each(|event| events.push(event));
+}
+
+pub fn handle_collision_system(game_world: &mut GameWorld) {
+    let (collsions, rest): (SmallVec<[Event; 32]>, SmallVec<[Event; 32]>) = game_world.events.iter().cloned().partition(|event| {
+        match event {
+            Event::Collision { .. } => true,
+            _ => false
+        }
+    });
+    game_world.events = rest;
+    collsions.iter().for_each(|_| game_world.events.push(Event::GameOver));
+}
+
+pub fn game_over_system(game_world: &mut GameWorld) {
+    let GameWorld { world, events, .. } = game_world;
+
+    let filter = events.iter().filter(|event| match event {
+        Event::GameOver => true,
+        _ => false,
+    }).nth(0);
+    if let Some(_) = filter {
+        world.clear();
+    }
+
 }
