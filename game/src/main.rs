@@ -133,9 +133,7 @@ impl EventHandler for Stage {
         self.renderer.begin_default_pass(ctx);
         self.renderer.apply_sprite_pipeline(ctx);
 
-        systems::render_food_system(&mut self.game_world, ctx);
-        systems::render_snake_system(&mut self.game_world, ctx);
-        systems::render_tail_system(&mut self.game_world, ctx);
+        systems::render_system(&mut self.game_world, ctx);
 
         self.renderer.end_render_pass(ctx);
         self.renderer.commit_frame(ctx);

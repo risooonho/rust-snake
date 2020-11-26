@@ -127,6 +127,7 @@ pub fn spawn_tail_system(game_world: &mut GameWorld) {
 
                 world.spawn((
                     tail,
+                    assets::AssetType::Tail,
                     components::Collision::snake(),
                     components::Position(pos.clone()),
                 ));
@@ -136,7 +137,7 @@ pub fn spawn_tail_system(game_world: &mut GameWorld) {
     }
 }
 
-pub fn render_snake_system(game_world: &mut GameWorld, ctx: &mut Context) {
+pub fn render_system(game_world: &mut GameWorld, ctx: &mut Context) {
     let GameWorld {
         camera,
         world,
@@ -144,52 +145,8 @@ pub fn render_snake_system(game_world: &mut GameWorld, ctx: &mut Context) {
         ..
     } = game_world;
     let mut uniform = camera.uniform();
-    if let Some(binding) = bindings.get(&assets::AssetType::Snake) {
-        for (_, (_food, pos)) in &mut world.query::<(&components::Snake, &components::Position)>() {
-            let model = Mat4::from_rotation_translation(
-                Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
-                Vec3::new(pos.0.x, pos.0.y, 0.),
-            );
-            uniform.model = model;
-            ctx.apply_bindings(&binding);
-            ctx.apply_uniforms(&uniform);
-            ctx.draw(0, 6, 1);
-        }
-    }
-}
-
-pub fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
-    let GameWorld {
-        camera,
-        world,
-        bindings,
-        ..
-    } = game_world;
-    let mut uniform = camera.uniform();
-    if let Some(binding) = bindings.get(&assets::AssetType::Food) {
-        for (_, (_food, pos)) in &mut world.query::<(&components::Food, &components::Position)>() {
-            let model = Mat4::from_rotation_translation(
-                Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
-                Vec3::new(pos.0.x, pos.0.y, 0.),
-            );
-            uniform.model = model;
-            ctx.apply_bindings(&binding);
-            ctx.apply_uniforms(&uniform);
-            ctx.draw(0, 6, 1);
-        }
-    }
-}
-
-pub fn render_tail_system(game_world: &mut GameWorld, ctx: &mut Context) {
-    let GameWorld {
-        camera,
-        world,
-        bindings,
-        ..
-    } = game_world;
-    let mut uniform = camera.uniform();
-    if let Some(binding) = bindings.get(&assets::AssetType::Tail) {
-        for (_, (_food, pos)) in &mut world.query::<(&components::Tail, &components::Position)>() {
+    for (_, (asset_type, pos)) in &mut world.query::<(&assets::AssetType, &components::Position)>() {
+        if let Some(binding) = bindings.get(asset_type) {
             let model = Mat4::from_rotation_translation(
                 Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
                 Vec3::new(pos.0.x, pos.0.y, 0.),
