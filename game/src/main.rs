@@ -97,6 +97,9 @@ impl EventHandler for Stage {
 
         systems::despawn_food_system(&mut self.game_world);
         systems::game_over_system(&mut self.game_world);
+
+        systems::gather_render_cmds(&mut self.game_world, &mut self.renderer.render_commands);
+
         self.input = Default::default();
         self.game_world.events.clear();
     }
@@ -130,13 +133,8 @@ impl EventHandler for Stage {
     }
 
     fn draw(&mut self, ctx: &mut Context) {
-        self.renderer.begin_default_pass(ctx);
-        self.renderer.apply_sprite_pipeline(ctx);
-
-        systems::render_system(&mut self.game_world, ctx);
-
-        self.renderer.end_render_pass(ctx);
-        self.renderer.commit_frame(ctx);
+        let c = self.game_world.camera.clone();
+        self.renderer.draw(ctx, &c);
     }
 }
 

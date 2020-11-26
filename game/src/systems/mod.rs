@@ -1,16 +1,13 @@
 use std::collections::HashMap;
 
-use glam::Mat4;
-use glam::Quat;
 use glam::Vec2;
-use glam::Vec3;
-use miniquad::Context;
 use quad_rand as qrand;
 use smallvec::SmallVec;
 
 use crate::assets;
 use crate::components;
 use crate::events::Event;
+use crate::graphics::renderer;
 use crate::GameWorld;
 
 pub fn add_food_system(game_world: &mut GameWorld) {
@@ -137,28 +134,6 @@ pub fn spawn_tail_system(game_world: &mut GameWorld) {
     }
 }
 
-pub fn render_system(game_world: &mut GameWorld, ctx: &mut Context) {
-    let GameWorld {
-        camera,
-        world,
-        bindings,
-        ..
-    } = game_world;
-    let mut uniform = camera.uniform();
-    for (_, (asset_type, pos)) in &mut world.query::<(&assets::AssetType, &components::Position)>() {
-        if let Some(binding) = bindings.get(asset_type) {
-            let model = Mat4::from_rotation_translation(
-                Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
-                Vec3::new(pos.0.x, pos.0.y, 0.),
-            );
-            uniform.model = model;
-            ctx.apply_bindings(&binding);
-            ctx.apply_uniforms(&uniform);
-            ctx.draw(0, 6, 1);
-        }
-    }
-}
-
 pub fn head_collision_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
     let (source_ent, source_pos): (hecs::Entity, Vec2) = match world
@@ -237,5 +212,18 @@ pub fn game_over_system(game_world: &mut GameWorld) {
         .nth(0);
     if let Some(_) = filter {
         world.clear();
+    }
+}
+
+pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::RenderCommands) {
+    let GameWorld {
+        world,
+        ..
+    } = game_world;
+    for (_, (asset_type, pos)) in &mut world.query::<(&assets::AssetType, &components::Position)>() {
+        commands.push(renderer::SpriteRenderCommand{
+            binding: *asset_type,
+            position: pos.0,
+        });
     }
 }

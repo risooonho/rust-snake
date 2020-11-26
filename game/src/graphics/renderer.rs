@@ -1,9 +1,24 @@
+use std::collections::HashMap;
 use miniquad::*;
+use smallvec::SmallVec;
+
+use crate::assets;
 use crate::graphics;
 use crate::shaders;
+use crate::components;
+
+pub type RenderCommands = SmallVec<[SpriteRenderCommand; 64]>;
+
+#[derive(Debug, Clone, Copy)]
+pub struct SpriteRenderCommand {
+    pub binding: assets::AssetType,
+    pub position: glam::Vec2,
+}
 
 pub struct MainRenderer {
     pub shader_pipeline: miniquad::Pipeline,
+    pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
+    pub bindings: assets::BindingAssets,
 }
 
 impl MainRenderer {
@@ -18,28 +33,47 @@ impl MainRenderer {
             ],
             shader,
         );
+
+        let mut bindings = HashMap::new();
+        let snake_food_binding = components::Food::new_bindings(ctx);
+        let snake_bindings = components::Snake::new_bindings(ctx);
+        let tail_bindings = components::Tail::new_bindings(ctx);
+        bindings.insert(assets::AssetType::Food, snake_food_binding);
+        bindings.insert(assets::AssetType::Snake, snake_bindings);
+        bindings.insert(assets::AssetType::Tail, tail_bindings);
+
         Self {
             shader_pipeline,
+            render_commands: SmallVec::new(),
+            bindings,
         }
     }
 
-    pub fn begin_default_pass(&self, ctx: &mut Context) {
+    pub fn draw(&mut self, ctx: &mut Context, camera: &components::Camera2D) {
         ctx.begin_default_pass(PassAction::Clear {
             color: Some(graphics::colors::DARKGRAY.into()),
             depth: Some(1.),
             stencil: None,
         });
-    }
 
-    pub fn apply_sprite_pipeline(&self, ctx: &mut Context) {
+        let mut uniform = camera.uniform();
         ctx.apply_pipeline(&self.shader_pipeline);
-    }
-
-    pub fn end_render_pass(&self, ctx: &mut Context) {
+        {
+            for SpriteRenderCommand { position, binding  } in self.render_commands.iter() {
+                if let Some(binding) = self.bindings.get(&binding) {
+                    let model = glam::Mat4::from_rotation_translation(
+                        glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), 0.),
+                        glam::Vec3::new(position.x, position.y, 0.),
+                    );
+                    uniform.model = model;
+                    ctx.apply_bindings(&binding);
+                    ctx.apply_uniforms(&uniform);
+                    ctx.draw(0, 6, 1);
+                }
+            }
+        }
         ctx.end_render_pass();
-    }
-
-    pub fn commit_frame(&self, ctx: &mut Context) {
         ctx.commit_frame();
+        self.render_commands.clear();
     }
 }

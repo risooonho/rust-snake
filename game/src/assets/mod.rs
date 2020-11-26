@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use miniquad::Bindings;
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AssetType {
     Food,
     Snake,

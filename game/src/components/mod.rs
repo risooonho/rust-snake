@@ -41,6 +41,7 @@ impl Timer {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Camera2D {
     scale: f32,
     view: Mat4,
