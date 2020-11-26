@@ -38,8 +38,8 @@ impl MainRenderer {
 
         let mut bindings = HashMap::new();
         let snake_food_binding = new_food_bindings(ctx);
-        let snake_bindings = components::Snake::new_bindings(ctx);
-        let tail_bindings = components::Tail::new_bindings(ctx);
+        let snake_bindings = new_snake_bindings(ctx);
+        let tail_bindings = new_tail_bindings(ctx);
         bindings.insert(assets::AssetType::Food, snake_food_binding);
         bindings.insert(assets::AssetType::Snake, snake_bindings);
         bindings.insert(assets::AssetType::Tail, tail_bindings);
@@ -94,6 +94,28 @@ impl MainRenderer {
 
 pub fn new_food_bindings(ctx: &mut Context) -> miniquad::Bindings {
     let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
+    let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
+
+    miniquad::Bindings {
+        vertex_buffers: vec![vertex_buffer],
+        index_buffer,
+        images: vec![texture],
+    }
+}
+
+pub fn new_snake_bindings(ctx: &mut Context) -> miniquad::Bindings {
+    let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
+    let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 1.);
+
+    miniquad::Bindings {
+        vertex_buffers: vec![vertex_buffer],
+        index_buffer,
+        images: vec![texture],
+    }
+}
+
+pub fn new_tail_bindings(ctx: &mut Context) -> miniquad::Bindings {
+    let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
     let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
 
     miniquad::Bindings {
