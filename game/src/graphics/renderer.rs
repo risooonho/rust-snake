@@ -19,6 +19,8 @@ pub struct MainRenderer {
     pub shader_pipeline: miniquad::Pipeline,
     pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
     pub bindings: assets::BindingAssets,
+    pub projection: glam::Mat4,
+    pub view: glam::Mat4,
 }
 
 impl MainRenderer {
@@ -46,17 +48,29 @@ impl MainRenderer {
             shader_pipeline,
             render_commands: SmallVec::new(),
             bindings,
+            projection: glam::Mat4::identity(),
+            view: glam::Mat4::identity(),
         }
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, camera: &components::Camera2D) {
+    pub fn update_view(&mut self, camera: &components::Camera2D) {
+        self.projection = camera.projection;
+        self.view = camera.view;
+    }
+
+    pub fn draw(&mut self, ctx: &mut Context) {
         ctx.begin_default_pass(PassAction::Clear {
             color: Some(graphics::colors::DARKGRAY.into()),
             depth: Some(1.),
             stencil: None,
         });
 
-        let mut uniform = camera.uniform();
+        let mut uniform = crate::shaders::sprite::VertexUniforms {
+            projection: self.projection,
+            view: self.view,
+            model: glam::Mat4::identity(),
+        };
+
         ctx.apply_pipeline(&self.shader_pipeline);
         {
             for SpriteRenderCommand { position, binding  } in self.render_commands.iter() {

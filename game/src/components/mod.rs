@@ -43,9 +43,9 @@ impl Timer {
 
 #[derive(Copy, Clone)]
 pub struct Camera2D {
-    scale: f32,
-    view: Mat4,
-    projection: Mat4,
+    pub scale: f32,
+    pub view: Mat4,
+    pub projection: Mat4,
 }
 
 impl Camera2D {

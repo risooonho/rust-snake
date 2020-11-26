@@ -97,8 +97,7 @@ impl EventHandler for Stage {
 
         systems::despawn_food_system(&mut self.game_world);
         systems::game_over_system(&mut self.game_world);
-
-        systems::gather_render_cmds(&mut self.game_world, &mut self.renderer.render_commands);
+        self.renderer.update_view(&self.game_world.camera);
 
         self.input = Default::default();
         self.game_world.events.clear();
@@ -133,8 +132,8 @@ impl EventHandler for Stage {
     }
 
     fn draw(&mut self, ctx: &mut Context) {
-        let c = self.game_world.camera.clone();
-        self.renderer.draw(ctx, &c);
+        systems::gather_render_cmds(&mut self.game_world, &mut self.renderer.render_commands);
+        self.renderer.draw(ctx);
     }
 }
 
