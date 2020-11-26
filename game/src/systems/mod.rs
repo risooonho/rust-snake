@@ -8,7 +8,7 @@ use miniquad::Context;
 use quad_rand as qrand;
 use smallvec::SmallVec;
 
-use crate::assets::AssetType;
+use crate::assets;
 use crate::components;
 use crate::events::Event;
 use crate::GameWorld;
@@ -23,7 +23,12 @@ pub fn add_food_system(game_world: &mut GameWorld) {
     let x = qrand::gen_range(-24, 24);
     let y = qrand::gen_range(-15, 15);
     let pos = components::Position(Vec2::new(x as f32, y as f32));
-    world.spawn((pos, components::Collision::food(), components::Food));
+    world.spawn((
+        pos,
+        components::Collision::food(),
+        components::Food,
+        assets::AssetType::Food,
+    ));
 }
 
 pub fn update_head_direction(game_world: &mut GameWorld, direction: Vec2) {
@@ -120,7 +125,11 @@ pub fn spawn_tail_system(game_world: &mut GameWorld) {
                     ahead: ahead.clone(),
                 };
 
-                world.spawn((tail, components::Collision::snake(), components::Position(pos.clone())));
+                world.spawn((
+                    tail,
+                    components::Collision::snake(),
+                    components::Position(pos.clone()),
+                ));
             }
             _ => {}
         }
@@ -135,7 +144,7 @@ pub fn render_snake_system(game_world: &mut GameWorld, ctx: &mut Context) {
         ..
     } = game_world;
     let mut uniform = camera.uniform();
-    if let Some(binding) = bindings.get(&AssetType::Snake) {
+    if let Some(binding) = bindings.get(&assets::AssetType::Snake) {
         for (_, (_food, pos)) in &mut world.query::<(&components::Snake, &components::Position)>() {
             let model = Mat4::from_rotation_translation(
                 Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
@@ -157,7 +166,7 @@ pub fn render_food_system(game_world: &mut GameWorld, ctx: &mut Context) {
         ..
     } = game_world;
     let mut uniform = camera.uniform();
-    if let Some(binding) = bindings.get(&AssetType::Food) {
+    if let Some(binding) = bindings.get(&assets::AssetType::Food) {
         for (_, (_food, pos)) in &mut world.query::<(&components::Food, &components::Position)>() {
             let model = Mat4::from_rotation_translation(
                 Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
@@ -179,7 +188,7 @@ pub fn render_tail_system(game_world: &mut GameWorld, ctx: &mut Context) {
         ..
     } = game_world;
     let mut uniform = camera.uniform();
-    if let Some(binding) = bindings.get(&AssetType::Tail) {
+    if let Some(binding) = bindings.get(&assets::AssetType::Tail) {
         for (_, (_food, pos)) in &mut world.query::<(&components::Tail, &components::Position)>() {
             let model = Mat4::from_rotation_translation(
                 Quat::from_axis_angle(Vec3::new(0., 0., 1.), 0.),
@@ -227,19 +236,33 @@ pub fn head_collision_system(game_world: &mut GameWorld) {
 }
 
 pub fn handle_collision_system(game_world: &mut GameWorld) {
-    let (collsions, rest): (SmallVec<[Event; 32]>, SmallVec<[Event; 32]>) = game_world.events.iter().cloned().partition(|event| {
-        match event {
+    let (collsions, rest): (SmallVec<[Event; 32]>, SmallVec<[Event; 32]>) = game_world
+        .events
+        .iter()
+        .cloned()
+        .partition(|event| match event {
             Event::Collision { .. } => true,
-            _ => false
-        }
-    });
+            _ => false,
+        });
     game_world.events = rest;
     collsions.iter().for_each(|collision| match collision {
-        Event::Collision { kind: components::CollsionKind::Snake, .. } => game_world.events.push(Event::GameOver),
-        Event::Collision { kind: components::CollsionKind::Food, target, .. } => {
+        Event::Collision {
+            kind: components::CollsionKind::Snake,
+            ..
+        } => game_world.events.push(Event::GameOver),
+        Event::Collision {
+            kind: components::CollsionKind::Food,
+            target,
+            ..
+        } => {
             let entity = target.clone();
-            let pos = game_world.world.get::<components::Position>(entity).expect("Food should have components::Position");
-            game_world.events.push(Event::SnakeEatFood { entity, pos: pos.0 });
+            let pos = game_world
+                .world
+                .get::<components::Position>(entity)
+                .expect("Food should have components::Position");
+            game_world
+                .events
+                .push(Event::SnakeEatFood { entity, pos: pos.0 });
         }
         _ => {}
     });
@@ -248,10 +271,13 @@ pub fn handle_collision_system(game_world: &mut GameWorld) {
 pub fn game_over_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
 
-    let filter = events.iter().filter(|event| match event {
-        Event::GameOver => true,
-        _ => false,
-    }).nth(0);
+    let filter = events
+        .iter()
+        .filter(|event| match event {
+            Event::GameOver => true,
+            _ => false,
+        })
+        .nth(0);
     if let Some(_) = filter {
         world.clear();
     }

@@ -4,13 +4,13 @@ use glam::Vec2;
 use miniquad::*;
 use smallvec::SmallVec;
 
+mod assets;
 mod components;
 mod events;
-mod shaders;
-mod utils;
-mod systems;
-mod assets;
 mod graphics;
+mod shaders;
+mod systems;
+mod utils;
 
 pub struct GameWorld {
     pub world: hecs::World,
@@ -47,18 +47,17 @@ impl Stage {
         };
         let ahead = game_world.world.spawn((
             components::Snake,
+            assets::AssetType::Snake,
             components::Position(Vec2::new(0., 0.)),
             components::Velocity(Vec2::new(0., 1.)),
         ));
-        let tail = components::Tail{
-            segment: 1,
-            ahead,
-        };
+        let tail = components::Tail { segment: 1, ahead };
 
         game_world.world.spawn((
             tail,
+            assets::AssetType::Tail,
             components::Collision::snake(),
-           components::Position(Vec2::new(0., -1.)),
+            components::Position(Vec2::new(0., -1.)),
         ));
 
         Stage {
