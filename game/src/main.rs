@@ -130,22 +130,16 @@ impl EventHandler for Stage {
         }
     }
 
-    fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) {}
-
     fn draw(&mut self, ctx: &mut Context) {
-        ctx.begin_default_pass(PassAction::Clear {
-            color: Some(graphics::colors::DARKGRAY.into()),
-            depth: Some(1.),
-            stencil: None,
-        });
+        self.renderer.begin_default_pass(ctx);
         self.renderer.apply_sprite_pipeline(ctx);
 
         systems::render_food_system(&mut self.game_world, ctx);
         systems::render_snake_system(&mut self.game_world, ctx);
         systems::render_tail_system(&mut self.game_world, ctx);
 
-        ctx.end_render_pass();
-        ctx.commit_frame();
+        self.renderer.end_render_pass(ctx);
+        self.renderer.commit_frame(ctx);
     }
 }
 

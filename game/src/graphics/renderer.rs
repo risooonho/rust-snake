@@ -1,4 +1,5 @@
 use miniquad::*;
+use crate::graphics;
 use crate::shaders;
 
 pub struct MainRenderer {
@@ -22,7 +23,23 @@ impl MainRenderer {
         }
     }
 
-    pub fn apply_sprite_pipeline(&mut self, ctx: &mut Context) {
+    pub fn begin_default_pass(&self, ctx: &mut Context) {
+        ctx.begin_default_pass(PassAction::Clear {
+            color: Some(graphics::colors::DARKGRAY.into()),
+            depth: Some(1.),
+            stencil: None,
+        });
+    }
+
+    pub fn apply_sprite_pipeline(&self, ctx: &mut Context) {
         ctx.apply_pipeline(&self.shader_pipeline);
+    }
+
+    pub fn end_render_pass(&self, ctx: &mut Context) {
+        ctx.end_render_pass();
+    }
+
+    pub fn commit_frame(&self, ctx: &mut Context) {
+        ctx.commit_frame();
     }
 }
