@@ -23,25 +23,14 @@ struct Stage {
     direction: components::Direction,
     game_world: GameWorld,
     input: components::Input,
-    pipeline: Pipeline,
     move_timer: components::Timer,
     food_timer: components::Timer,
+    renderer: graphics::MainRenderer,
 }
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
-        let shader = shaders::sprite::new(ctx).unwrap();
-
-        let pipeline = Pipeline::new(
-            ctx,
-            &[BufferLayout::default()],
-            &[
-                VertexAttribute::new("pos", VertexFormat::Float2),
-                VertexAttribute::new("uv", VertexFormat::Float2),
-            ],
-            shader,
-        );
-
+        let renderer = graphics::MainRenderer::new(ctx);
         let mut bindings = HashMap::new();
         let snake_food_binding = components::Food::new_bindings(ctx);
         let snake_bindings = components::Snake::new_bindings(ctx);
@@ -75,7 +64,7 @@ impl Stage {
         Stage {
             direction: components::Direction::Up,
             game_world,
-            pipeline,
+            renderer,
             move_timer: components::Timer::new(0.25),
             input: components::Input::default(),
             food_timer: components::Timer::new(0.5),
@@ -149,7 +138,7 @@ impl EventHandler for Stage {
             depth: Some(1.),
             stencil: None,
         });
-        ctx.apply_pipeline(&self.pipeline);
+        self.renderer.apply_sprite_pipeline(ctx);
 
         systems::render_food_system(&mut self.game_world, ctx);
         systems::render_snake_system(&mut self.game_world, ctx);

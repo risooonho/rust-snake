@@ -1,3 +1,6 @@
+pub mod renderer;
+pub use renderer::MainRenderer;
+
 #[derive(Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Color([f32; 4]);
 
