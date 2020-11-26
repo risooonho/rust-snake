@@ -103,19 +103,6 @@ impl Snake {
 
 pub struct Food;
 
-impl Food {
-    pub fn new_bindings(ctx: &mut Context) -> miniquad::Bindings {
-        let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
-        let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
-
-        miniquad::Bindings {
-            vertex_buffers: vec![vertex_buffer],
-            index_buffer,
-            images: vec![texture],
-        }
-    }
-}
-
 pub struct Tail {
     pub segment: usize,
     pub ahead: hecs::Entity,

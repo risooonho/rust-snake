@@ -1,11 +1,11 @@
-use std::collections::HashMap;
 use miniquad::*;
 use smallvec::SmallVec;
+use std::collections::HashMap;
 
 use crate::assets;
+use crate::components;
 use crate::graphics;
 use crate::shaders;
-use crate::components;
 
 pub type RenderCommands = SmallVec<[SpriteRenderCommand; 64]>;
 
@@ -37,7 +37,7 @@ impl MainRenderer {
         );
 
         let mut bindings = HashMap::new();
-        let snake_food_binding = components::Food::new_bindings(ctx);
+        let snake_food_binding = new_food_bindings(ctx);
         let snake_bindings = components::Snake::new_bindings(ctx);
         let tail_bindings = components::Tail::new_bindings(ctx);
         bindings.insert(assets::AssetType::Food, snake_food_binding);
@@ -73,7 +73,7 @@ impl MainRenderer {
 
         ctx.apply_pipeline(&self.shader_pipeline);
         {
-            for SpriteRenderCommand { position, binding  } in self.render_commands.iter() {
+            for SpriteRenderCommand { position, binding } in self.render_commands.iter() {
                 if let Some(binding) = self.bindings.get(&binding) {
                     let model = glam::Mat4::from_rotation_translation(
                         glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), 0.),
@@ -89,5 +89,16 @@ impl MainRenderer {
         ctx.end_render_pass();
         ctx.commit_frame();
         self.render_commands.clear();
+    }
+}
+
+pub fn new_food_bindings(ctx: &mut Context) -> miniquad::Bindings {
+    let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
+    let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
+
+    miniquad::Bindings {
+        vertex_buffers: vec![vertex_buffer],
+        index_buffer,
+        images: vec![texture],
     }
 }

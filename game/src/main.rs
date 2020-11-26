@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use glam::Vec2;
 use miniquad::*;
 use smallvec::SmallVec;
@@ -15,7 +13,6 @@ mod utils;
 pub struct GameWorld {
     pub world: hecs::World,
     pub events: SmallVec<[events::Event; 32]>,
-    pub bindings: assets::BindingAssets,
     pub camera: components::Camera2D,
 }
 
@@ -31,18 +28,9 @@ struct Stage {
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
         let renderer = graphics::MainRenderer::new(ctx);
-        let mut bindings = HashMap::new();
-        let snake_food_binding = components::Food::new_bindings(ctx);
-        let snake_bindings = components::Snake::new_bindings(ctx);
-        let tail_bindings = components::Tail::new_bindings(ctx);
-        bindings.insert(assets::AssetType::Food, snake_food_binding);
-        bindings.insert(assets::AssetType::Snake, snake_bindings);
-        bindings.insert(assets::AssetType::Tail, tail_bindings);
-
         let mut game_world = GameWorld {
             events: SmallVec::new(),
             camera: components::Camera2D::new(ctx, 20.),
-            bindings,
             world: hecs::World::new(),
         };
         let ahead = game_world.world.spawn((
