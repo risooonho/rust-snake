@@ -43,9 +43,10 @@ impl MainRenderer {
         let mut materials = HashMap::new();
         let mut meshes = HashMap::new();
 
-        let snake_texture = new_snake_texture(ctx);
-        let tail_texture = new_tail_texture(ctx);
-        let food_texture = new_food_texture(ctx);
+        let snake_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
+        let tail_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
+        let food_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
+
         materials.insert(assets::AssetType::Food, vec![food_texture]);
         materials.insert(assets::AssetType::Tail, vec![tail_texture]);
         materials.insert(assets::AssetType::Snake, vec![snake_texture]);
@@ -116,16 +117,4 @@ impl MainRenderer {
         ctx.commit_frame();
         self.render_commands.clear();
     }
-}
-
-pub fn new_food_texture(ctx: &mut Context) -> miniquad::Texture {
-    crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE)
-}
-
-pub fn new_snake_texture(ctx: &mut Context) -> miniquad::Texture {
-    crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE)
-}
-
-pub fn new_tail_texture(ctx: &mut Context) -> miniquad::Texture {
-    crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE)
 }
