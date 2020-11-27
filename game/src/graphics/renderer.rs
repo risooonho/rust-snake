@@ -47,7 +47,7 @@ impl MainRenderer {
         let snake_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
         let tail_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
         let food_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
-        let arrow_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::YELLOW);
+        let arrow_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RED);
 
         materials.insert(assets::AssetType::Food, vec![food_texture]);
         materials.insert(assets::AssetType::Tail, vec![tail_texture]);
