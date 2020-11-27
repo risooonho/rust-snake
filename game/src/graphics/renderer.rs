@@ -8,6 +8,8 @@ use crate::graphics;
 use crate::shaders;
 
 pub type RenderCommands = SmallVec<[SpriteRenderCommand; 64]>;
+pub type Materials = HashMap<assets::AssetType, Vec<Texture>>;
+pub type Meshes = HashMap<assets::AssetType, (miniquad::Buffer, miniquad::Buffer)>;
 
 #[derive(Debug, Clone, Copy)]
 pub struct SpriteRenderCommand {
@@ -19,6 +21,8 @@ pub struct MainRenderer {
     pub shader_pipeline: miniquad::Pipeline,
     pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
     pub bindings: assets::BindingAssets,
+    pub meshes: Meshes,
+    pub materials: Materials,
     pub projection: glam::Mat4,
     pub view: glam::Mat4,
 }
@@ -37,9 +41,14 @@ impl MainRenderer {
         );
 
         let mut bindings = HashMap::new();
+
         let snake_food_binding = new_food_bindings(ctx);
+
         let snake_bindings = new_snake_bindings(ctx);
         let tail_bindings = new_tail_bindings(ctx);
+        let materials = HashMap::new();
+        let meshes = HashMap::new();
+
         bindings.insert(assets::AssetType::Food, snake_food_binding);
         bindings.insert(assets::AssetType::Snake, snake_bindings);
         bindings.insert(assets::AssetType::Tail, tail_bindings);
@@ -48,6 +57,8 @@ impl MainRenderer {
             shader_pipeline,
             render_commands: SmallVec::new(),
             bindings,
+            materials,
+            meshes,
             projection: glam::Mat4::identity(),
             view: glam::Mat4::identity(),
         }
@@ -92,8 +103,12 @@ impl MainRenderer {
     }
 }
 
+pub fn new_food_texture(ctx: &mut Context) -> miniquad::Texture {
+    crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE)
+}
+
 pub fn new_food_bindings(ctx: &mut Context) -> miniquad::Bindings {
-    let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
+    let texture = new_food_texture(ctx);
     let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
 
     miniquad::Bindings {
@@ -103,8 +118,12 @@ pub fn new_food_bindings(ctx: &mut Context) -> miniquad::Bindings {
     }
 }
 
+pub fn new_snake_texture(ctx: &mut Context) -> miniquad::Texture {
+    crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE)
+}
+
 pub fn new_snake_bindings(ctx: &mut Context) -> miniquad::Bindings {
-    let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
+    let texture = new_snake_texture(ctx);
     let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 1.);
 
     miniquad::Bindings {
@@ -114,8 +133,12 @@ pub fn new_snake_bindings(ctx: &mut Context) -> miniquad::Bindings {
     }
 }
 
+pub fn new_tail_texture(ctx: &mut Context) -> miniquad::Texture {
+    crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE)
+}
+
 pub fn new_tail_bindings(ctx: &mut Context) -> miniquad::Bindings {
-    let texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
+    let texture = new_tail_texture(ctx);
     let (vertex_buffer, index_buffer) = crate::utils::make_square(ctx, 0.8);
 
     miniquad::Bindings {
