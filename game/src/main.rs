@@ -10,8 +10,6 @@ mod shaders;
 mod systems;
 mod utils;
 
-use graphics::renderer;
-
 pub struct GameWorld {
     pub world: hecs::World,
     pub events: SmallVec<[events::Event; 32]>,
@@ -54,9 +52,9 @@ impl Stage {
             direction: components::Direction::Up,
             game_world,
             renderer,
-            move_timer: components::Timer::new(0.25),
+            move_timer: components::Timer::new(0.75),
             input: components::Input::default(),
-            food_timer: components::Timer::new(0.5),
+            food_timer: components::Timer::new(1.5),
         }
     }
 }

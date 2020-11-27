@@ -15,6 +15,7 @@ pub type Meshes = HashMap<assets::AssetType, (Vec<miniquad::Buffer>, miniquad::B
 pub struct SpriteRenderCommand {
     pub binding: assets::AssetType,
     pub position: glam::Vec2,
+    pub angle: f32,
     pub num_of_elements: i32,
 }
 
@@ -93,7 +94,7 @@ impl MainRenderer {
 
         ctx.apply_pipeline(&self.shader_pipeline);
         {
-            for SpriteRenderCommand { position, binding, num_of_elements } in self.render_commands.iter() {
+            for SpriteRenderCommand { position, binding, num_of_elements, angle } in self.render_commands.iter() {
                 let (vertex_buffers, index_buffer) = match self.meshes.get(binding) {
                     Some(m) => m,
                     _ => continue,
@@ -103,7 +104,7 @@ impl MainRenderer {
                     _ => continue,
                 };
                 let model = glam::Mat4::from_rotation_translation(
-                    glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), 0.),
+                    glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), *angle),
                     glam::Vec3::new(position.x, position.y, 0.),
                 );
                 uniform.model = model;

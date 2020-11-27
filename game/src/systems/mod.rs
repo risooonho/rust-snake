@@ -225,6 +225,7 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::R
             binding: *asset_type,
             position: pos.0,
             num_of_elements: 6,
+            angle: 0.,
         });
     }
 }
@@ -235,10 +236,13 @@ pub fn debug_render_cmds(game_world: &mut GameWorld, cmds: &mut renderer::Render
         ..
     } = game_world;
     for (_, (vel, pos)) in &mut world.query::<(&components::Velocity, &components::Position)>() {
+        let velocity = Vec2::new(vel.0.x, vel.0.y *  -1.);
+        let angle = velocity.angle_between(Vec2::new(1., 0.));
         cmds.push(renderer::SpriteRenderCommand{
             binding: assets::AssetType::Arrow,
             position: vel.0 + pos.0,
             num_of_elements: 9,
+            angle,
         });
     }
 }
