@@ -15,6 +15,7 @@ pub type Meshes = HashMap<assets::AssetType, (Vec<miniquad::Buffer>, miniquad::B
 pub struct SpriteRenderCommand {
     pub binding: assets::AssetType,
     pub position: glam::Vec2,
+    pub num_of_elements: i32,
 }
 
 pub struct MainRenderer {
@@ -87,7 +88,7 @@ impl MainRenderer {
 
         ctx.apply_pipeline(&self.shader_pipeline);
         {
-            for SpriteRenderCommand { position, binding } in self.render_commands.iter() {
+            for SpriteRenderCommand { position, binding, num_of_elements } in self.render_commands.iter() {
                 let (vertex_buffers, index_buffer) = match self.meshes.get(binding) {
                     Some(m) => m,
                     _ => continue,
@@ -108,7 +109,7 @@ impl MainRenderer {
                 };
                 ctx.apply_bindings(&bindings);
                 ctx.apply_uniforms(&uniform);
-                ctx.draw(0, 6, 1);
+                ctx.draw(0, *num_of_elements, 1);
             }
         }
         ctx.end_render_pass();

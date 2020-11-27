@@ -224,6 +224,7 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::R
         commands.push(renderer::SpriteRenderCommand{
             binding: *asset_type,
             position: pos.0,
+            num_of_elements: 6,
         });
     }
 }
