@@ -228,3 +228,17 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::R
         });
     }
 }
+
+pub fn debug_render_cmds(game_world: &mut GameWorld, cmds: &mut renderer::RenderCommands) {
+    let GameWorld {
+        world,
+        ..
+    } = game_world;
+    for (_, (vel, pos)) in &mut world.query::<(&components::Velocity, &components::Position)>() {
+        cmds.push(renderer::SpriteRenderCommand{
+            binding: assets::AssetType::Arrow,
+            position: vel.0 + pos.0,
+            num_of_elements: 9,
+        });
+    }
+}
