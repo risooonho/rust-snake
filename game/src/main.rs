@@ -10,6 +10,8 @@ mod shaders;
 mod systems;
 mod utils;
 
+use graphics::renderer;
+
 pub struct GameWorld {
     pub world: hecs::World,
     pub events: SmallVec<[events::Event; 32]>,
@@ -120,6 +122,11 @@ impl EventHandler for Stage {
     }
 
     fn draw(&mut self, ctx: &mut Context) {
+        self.renderer.render_commands.push(renderer::SpriteRenderCommand{
+            binding: assets::AssetType::Arrow,
+            position: Vec2::new(0., 0.),
+            num_of_elements: 9,
+        });
         systems::gather_render_cmds(&mut self.game_world, &mut self.renderer.render_commands);
         self.renderer.draw(ctx);
     }

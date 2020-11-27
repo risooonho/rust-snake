@@ -46,18 +46,22 @@ impl MainRenderer {
         let snake_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
         let tail_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
         let food_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
+        let arrow_texture = crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::YELLOW);
 
         materials.insert(assets::AssetType::Food, vec![food_texture]);
         materials.insert(assets::AssetType::Tail, vec![tail_texture]);
         materials.insert(assets::AssetType::Snake, vec![snake_texture]);
+        materials.insert(assets::AssetType::Arrow, vec![arrow_texture]);
 
         let snake_mesh = crate::utils::make_square(ctx, 1.);
         let food_mesh = crate::utils::make_square(ctx, 0.8);
         let tail_mesh = crate::utils::make_square(ctx, 0.8);
+        let arrow_mesh = crate::utils::make_arrow(ctx);
 
         meshes.insert(assets::AssetType::Food, (vec![food_mesh.0], food_mesh.1));
         meshes.insert(assets::AssetType::Tail, (vec![tail_mesh.0], tail_mesh.1));
         meshes.insert(assets::AssetType::Snake, (vec![snake_mesh.0], snake_mesh.1));
+        meshes.insert(assets::AssetType::Arrow, (vec![arrow_mesh.0], arrow_mesh.1));
 
         Self {
             shader_pipeline,

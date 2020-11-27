@@ -3,4 +3,5 @@ pub enum AssetType {
     Food,
     Snake,
     Tail,
+    Arrow,
 }
