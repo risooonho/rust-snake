@@ -9,6 +9,23 @@ pub struct Input {
     pub go_down: bool,
 }
 
+impl Input {
+    pub fn direction(&self) -> Option<Direction> {
+        if self.go_left {
+            Some(Direction::Left)
+        } else if self.go_right {
+            Some(Direction::Right)
+        } else if self.go_down {
+            Some(Direction::Down)
+        } else if self.go_up {
+            Some(Direction::Up)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct Timer {
     start: f64,
     duration: f64,
@@ -112,7 +129,7 @@ impl Collision {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Direction {
     Up,
     Right,
@@ -163,3 +180,6 @@ impl Default for Direction {
         Direction::Up
     }
 }
+
+#[derive(Debug, Default)]
+pub struct HeadDirection(pub Direction);

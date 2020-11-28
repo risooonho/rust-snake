@@ -10,6 +10,21 @@ use crate::events::Event;
 use crate::graphics::renderer;
 use crate::GameWorld;
 
+pub fn update_input(game_world: &mut GameWorld, input: &components::Input) {
+    let GameWorld { world, .. } = game_world;
+    for (_, (vel, dir, _)) in &mut world.query::<(
+        &components::Velocity,
+        &mut components::HeadDirection,
+        &components::Snake,
+    )>() {
+        if let Some(d) = input.direction() {
+            if d.velocity() != vel.0 * -1. {
+                dir.0 = d;
+            }
+        }
+    }
+}
+
 pub fn add_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
     let snake_count = world.query::<&components::Food>().iter().count();
@@ -28,11 +43,12 @@ pub fn add_food_system(game_world: &mut GameWorld) {
     ));
 }
 
-pub fn update_head_direction(game_world: &mut GameWorld, direction: Vec2) {
+pub fn update_velocity_direction(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
-    for (_, (velocity, _)) in &mut world.query::<(&mut components::Velocity, &components::Snake)>()
+    for (_, (velocity, direction)) in
+        &mut world.query::<(&mut components::Velocity, &components::HeadDirection)>()
     {
-        velocity.0 = direction;
+        velocity.0 = direction.0.velocity();
     }
 }
 
@@ -216,12 +232,10 @@ pub fn game_over_system(game_world: &mut GameWorld) {
 }
 
 pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::RenderCommands) {
-    let GameWorld {
-        world,
-        ..
-    } = game_world;
-    for (_, (asset_type, pos)) in &mut world.query::<(&assets::AssetType, &components::Position)>() {
-        commands.push(renderer::SpriteRenderCommand{
+    let GameWorld { world, .. } = game_world;
+    for (_, (asset_type, pos)) in &mut world.query::<(&assets::AssetType, &components::Position)>()
+    {
+        commands.push(renderer::SpriteRenderCommand {
             binding: *asset_type,
             position: pos.0,
             num_of_elements: 6,
@@ -231,16 +245,15 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::R
 }
 
 pub fn debug_render_cmds(game_world: &mut GameWorld, cmds: &mut renderer::RenderCommands) {
-    let GameWorld {
-        world,
-        ..
-    } = game_world;
-    for (_, (vel, pos)) in &mut world.query::<(&components::Velocity, &components::Position)>() {
-        let velocity = Vec2::new(vel.0.x, vel.0.y *  -1.);
+    let GameWorld { world, .. } = game_world;
+    for (_, (dir, pos)) in &mut world.query::<(&components::HeadDirection, &components::Position)>()
+    {
+        let vel = dir.0.velocity();
+        let velocity = Vec2::new(vel.x, vel.y * -1.);
         let angle = velocity.angle_between(Vec2::new(1., 0.));
-        cmds.push(renderer::SpriteRenderCommand{
+        cmds.push(renderer::SpriteRenderCommand {
             binding: assets::AssetType::Arrow,
-            position: vel.0 + pos.0,
+            position: vel + pos.0,
             num_of_elements: 9,
             angle,
         });

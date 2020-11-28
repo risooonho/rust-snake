@@ -38,6 +38,7 @@ impl Stage {
             assets::AssetType::Snake,
             components::Position(Vec2::new(0., 0.)),
             components::Velocity(Vec2::new(0., 1.)),
+            components::HeadDirection::default(),
         ));
         let tail = components::Tail { segment: 1, ahead };
 
@@ -66,7 +67,9 @@ impl EventHandler for Stage {
 
     fn update(&mut self, _ctx: &mut Context) {
         self.direction.update(&self.input);
+        systems::update_input(&mut self.game_world, &self.input);
         if self.move_timer.finished() {
+            systems::update_velocity_direction(&mut self.game_world);
             systems::tail_movement_system(&mut self.game_world);
             systems::head_collision_system(&mut self.game_world);
             systems::handle_collision_system(&mut self.game_world);
@@ -74,9 +77,6 @@ impl EventHandler for Stage {
             systems::movement_system(&mut self.game_world);
             systems::spawn_tail_system(&mut self.game_world);
             self.move_timer.reset();
-        } else {
-            let direction = self.direction.velocity();
-            systems::update_head_direction(&mut self.game_world, direction);
         }
         if self.food_timer.finished() {
             systems::add_food_system(&mut self.game_world);
