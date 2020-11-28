@@ -20,14 +20,14 @@ pub struct GameWorld {
 }
 
 struct Stage {
-    stages: Vec<Box<dyn EventHandler>>,
+    stages: Vec<Box<dyn stages::Stage>>,
 }
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
         let mut stages = Vec::with_capacity(8);
         let game_stage = Box::new(GameState::new(ctx));
-        stages.push(game_stage as Box<dyn EventHandler>);
+        stages.push(game_stage as Box<dyn stages::Stage>);
         Self {
             stages
         }
@@ -45,11 +45,13 @@ impl EventHandler for Stage {
     }
 
     fn update(&mut self, ctx: &mut Context) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return
         };
-        stage.update(ctx);
+        match stage.update(ctx) {
+            _ => {}
+        }
     }
 
     fn key_down_event(

@@ -1,14 +1,79 @@
-use miniquad::{Context, EventHandler, KeyCode, KeyMods};
+use miniquad::{Context, EventHandler, KeyCode, KeyMods, MouseButton, TouchPhase};
 use smallvec::SmallVec;
 
-use crate::components;
-use crate::systems;
-use crate::graphics;
 use crate::assets;
+use crate::components;
+use crate::graphics;
+use crate::systems;
 use crate::Vec2;
 
 use crate::GameWorld;
 
+pub enum NextStage {
+    Noop,
+    Pop,
+}
+
+pub trait Stage {
+    fn update(&mut self, _ctx: &mut Context) -> NextStage;
+    fn draw(&mut self, _ctx: &mut Context) {}
+    fn resize_event(&mut self, _ctx: &mut Context, _width: f32, _height: f32) {}
+    fn mouse_motion_event(&mut self, _ctx: &mut Context, _x: f32, _y: f32) {}
+    fn mouse_wheel_event(&mut self, _ctx: &mut Context, _x: f32, _y: f32) {}
+    fn mouse_button_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: MouseButton,
+        _x: f32,
+        _y: f32,
+    ) {
+    }
+    fn mouse_button_up_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: MouseButton,
+        _x: f32,
+        _y: f32,
+    ) {
+    }
+
+    fn char_event(
+        &mut self,
+        _ctx: &mut Context,
+        _character: char,
+        _keymods: KeyMods,
+        _repeat: bool,
+    ) {
+    }
+
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        _keycode: KeyCode,
+        _keymods: KeyMods,
+        _repeat: bool,
+    ) {
+    }
+
+    fn key_up_event(&mut self, _ctx: &mut Context, _keycode: KeyCode, _keymods: KeyMods) {}
+
+    fn touch_event(&mut self, ctx: &mut Context, phase: TouchPhase, _id: u64, x: f32, y: f32) {
+        if phase == TouchPhase::Started {
+            self.mouse_button_down_event(ctx, MouseButton::Left, x, y);
+        }
+
+        if phase == TouchPhase::Ended {
+            self.mouse_button_up_event(ctx, MouseButton::Left, x, y);
+        }
+
+        if phase == TouchPhase::Moved {
+            self.mouse_motion_event(ctx, x, y);
+        }
+    }
+
+    fn raw_mouse_motion(&mut self, _ctx: &mut Context, _dx: f32, _dy: f32) {}
+    fn quit_requested_event(&mut self, _ctx: &mut Context) {}
+}
 
 pub struct GameState {
     direction: components::Direction,
@@ -54,12 +119,12 @@ impl GameState {
     }
 }
 
-impl EventHandler for GameState {
+impl Stage for GameState {
     fn resize_event(&mut self, ctx: &mut Context, _width: f32, _height: f32) {
         self.game_world.camera.resize(ctx);
     }
 
-    fn update(&mut self, _ctx: &mut Context) {
+    fn update(&mut self, _ctx: &mut Context) -> NextStage {
         self.direction.update(&self.input);
         systems::update_input(&mut self.game_world, &self.input);
         if self.move_timer.finished() {
@@ -83,6 +148,7 @@ impl EventHandler for GameState {
 
         self.input = Default::default();
         self.game_world.events.clear();
+        NextStage::Noop
     }
 
     fn key_down_event(
