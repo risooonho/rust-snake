@@ -8,10 +8,9 @@ mod components;
 mod events;
 mod graphics;
 mod shaders;
+mod stages;
 mod systems;
 mod utils;
-mod stages;
-
 
 pub struct GameWorld {
     pub world: hecs::World,
@@ -28,12 +27,9 @@ impl Stage {
         let mut stages = stages::new_stage_stack(16);
         let game_stage = Box::new(GameState::new(ctx));
         stages.push(game_stage as Box<dyn stages::Stage>);
-        Self {
-            stages
-        }
+        Self { stages }
     }
 }
-
 
 impl EventHandler for Stage {
     fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) {
@@ -47,17 +43,15 @@ impl EventHandler for Stage {
     fn update(&mut self, ctx: &mut Context) {
         let stage = match self.stages.last_mut() {
             Some(s) => s,
-            _ => return
+            _ => return,
         };
         match stage.update(ctx) {
             stages::NextStage::Push(stage) => {
-                println!("Push");
-                 self.stages.push(stage);
-            },
+                self.stages.push(stage);
+            }
             stages::NextStage::Pop => {
-                println!("Pop");
-                 self.stages.pop().expect("Popped an Empty StageStack");
-            },
+                self.stages.pop().expect("Popped an Empty StageStack");
+            }
             _ => {}
         };
     }
@@ -84,7 +78,6 @@ impl EventHandler for Stage {
         stage.key_down_event(ctx, keycode, keymods, repeat);
     }
 
-
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
         let stage = match self.stages.last_mut() {
             Some(s) => s,
@@ -101,13 +94,7 @@ impl EventHandler for Stage {
         stage.mouse_wheel_event(ctx, x, y);
     }
 
-    fn mouse_button_down_event(
-        &mut self,
-        ctx: &mut Context,
-        button: MouseButton,
-        x: f32,
-        y: f32,
-    ) {
+    fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
@@ -115,13 +102,7 @@ impl EventHandler for Stage {
         stage.mouse_button_down_event(ctx, button, x, y);
     }
 
-    fn mouse_button_up_event(
-        &mut self,
-        ctx: &mut Context,
-        button: MouseButton,
-        x: f32,
-        y: f32,
-    ) {
+    fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
@@ -129,13 +110,7 @@ impl EventHandler for Stage {
         stage.mouse_button_up_event(ctx, button, x, y);
     }
 
-    fn char_event(
-        &mut self,
-        ctx: &mut Context,
-        character: char,
-        keymods: KeyMods,
-        repeat: bool,
-    ) {
+    fn char_event(&mut self, ctx: &mut Context, character: char, keymods: KeyMods, repeat: bool) {
         let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
@@ -149,7 +124,6 @@ impl EventHandler for Stage {
             _ => return,
         };
         stage.key_up_event(ctx, keycode, keymods);
-
     }
 
     fn raw_mouse_motion(&mut self, ctx: &mut Context, dx: f32, dy: f32) {
