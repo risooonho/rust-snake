@@ -80,7 +80,10 @@ impl Stage for GameState {
         }
 
         systems::despawn_food_system(&mut self.game_world);
-        systems::game_over_system(&mut self.game_world);
+        if systems::game_over_system(&mut self.game_world) {
+            self.move_timer.reset();
+            self.food_timer.reset();
+        }
         self.renderer.update_view(&self.game_world.camera);
 
         self.input = Default::default();

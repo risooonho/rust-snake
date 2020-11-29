@@ -235,7 +235,7 @@ pub fn handle_collision_system(game_world: &mut GameWorld) {
     });
 }
 
-pub fn game_over_system(game_world: &mut GameWorld) {
+pub fn game_over_system(game_world: &mut GameWorld) -> bool {
     let GameWorld { world, events, .. } = game_world;
 
     let filter = events
@@ -247,7 +247,10 @@ pub fn game_over_system(game_world: &mut GameWorld) {
         .nth(0);
     if let Some(_) = filter {
         world.clear();
+        create_snake_system(game_world);
+        return true;
     }
+    false
 }
 
 pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::RenderCommands) {
