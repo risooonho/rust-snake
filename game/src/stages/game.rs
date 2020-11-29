@@ -4,13 +4,13 @@ use smallvec::SmallVec;
 use crate::components;
 use crate::graphics;
 use crate::stages::{NextStage, Paused, Stage};
-use crate::systems;
+use crate::systems::{self, GameWorld};
+use crate::Vec2;
 
-use crate::GameWorld;
 
 pub struct GameState {
     direction: components::Direction,
-    game_world: crate::GameWorld,
+    game_world: GameWorld,
     input: components::Input,
     move_timer: components::Timer,
     food_timer: components::Timer,

@@ -6,9 +6,16 @@ use smallvec::SmallVec;
 
 use crate::assets;
 use crate::components;
+use crate::events;
 use crate::events::Event;
 use crate::graphics::renderer;
-use crate::GameWorld;
+
+pub struct GameWorld {
+    pub world: hecs::World,
+    pub events: SmallVec<[events::Event; 32]>,
+    pub camera: components::Camera2D,
+}
+
 
 pub fn create_snake_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
