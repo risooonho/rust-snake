@@ -28,21 +28,7 @@ impl GameState {
             camera: components::Camera2D::new(ctx, 20.),
             world: hecs::World::new(),
         };
-        let ahead = game_world.world.spawn((
-            components::Snake,
-            assets::AssetType::Snake,
-            components::Position(Vec2::new(0., 0.)),
-            components::Velocity(Vec2::new(0., 1.)),
-            components::HeadDirection::default(),
-        ));
-        let tail = components::Tail { segment: 1, ahead };
-
-        game_world.world.spawn((
-            tail,
-            assets::AssetType::Tail,
-            components::Collision::snake(),
-            components::Position(Vec2::new(0., -1.)),
-        ));
+        systems::create_snake_system(&mut game_world);
 
         GameState {
             direction: components::Direction::Up,
