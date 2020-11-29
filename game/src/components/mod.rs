@@ -26,10 +26,24 @@ impl Input {
     }
 }
 
+// fn lerp(low: f64, high: f64, value: f64) -> f64 {
+//     ((1. - value) * low + high * value).min(high).max(low)
+// }
+
+fn inv_lerp(low: f64, high: f64, alpha: f64) -> f64 {
+    ( alpha - low ) / ( high - low )
+}
+
+// fn remap( original_min: f32, original_max: f32, new_min: f32, new_max: f32, value: f32) -> f32 {
+//     let alpha = inv_lerp(original_min, original_max, value);
+//     lerp(new_min, new_max, alpha)
+// }
+
 #[derive(Debug)]
 pub struct Timer {
     start: f64,
     duration: f64,
+    paused_time: Option<f64>,
 }
 
 impl Timer {
@@ -37,17 +51,43 @@ impl Timer {
         Self {
             start: date::now(),
             duration,
+            paused_time: None,
         }
     }
 
     pub fn reset(&mut self) {
         self.start = date::now();
+        self.paused_time = None;
     }
 
     pub fn finished(&self) -> bool {
         let now = date::now();
         return (now - self.start) > self.duration;
     }
+
+    pub fn paused(&mut self) {
+        let now = date::now();
+        self.paused_time = Some(now);
+    }
+
+    pub fn resume(&mut self) {
+        let paused_time = match self.paused_time {
+            Some(v) => v,
+            _ => return,
+        };
+
+        let original_alpha = inv_lerp(self.start, self.start + self.duration, paused_time);
+
+        let elasped = paused_time - self.start;
+        let now = date::now();
+        self.start = now - elasped;
+
+        let new_alpha = inv_lerp(self.start, self.start + self.duration, now);
+        assert_eq!(original_alpha, new_alpha);
+
+        self.paused_time = None;
+    }
+
 }
 
 #[derive(Copy, Clone)]

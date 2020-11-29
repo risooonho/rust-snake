@@ -18,6 +18,8 @@ pub enum NextStage {
 }
 
 pub trait Stage {
+    fn enter(&mut self, _ctx: &mut Context) {}
+    fn exit(&mut self, _ctx: &mut Context) {}
     fn update(&mut self, _ctx: &mut Context) -> NextStage;
     fn draw(&mut self, _ctx: &mut Context) {}
     fn resize_event(&mut self, _ctx: &mut Context, _width: f32, _height: f32) {}

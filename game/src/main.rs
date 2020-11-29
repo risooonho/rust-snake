@@ -45,12 +45,20 @@ impl EventHandler for Stage {
             Some(s) => s,
             _ => return,
         };
-        match stage.update(ctx) {
-            stages::NextStage::Push(stage) => {
-                self.stages.push(stage);
+        let next_stage = stage.update(ctx);
+        match next_stage {
+            stages::NextStage::Push(mut new_stage) => {
+                stage.exit(ctx);
+                new_stage.enter(ctx);
+                self.stages.push(new_stage);
             }
             stages::NextStage::Pop => {
+                stage.exit(ctx);
                 self.stages.pop().expect("Popped an Empty StageStack");
+                match self.stages.last_mut() {
+                    Some(s) => s.enter(ctx),
+                    _ => {}
+                };
             }
             _ => {}
         };

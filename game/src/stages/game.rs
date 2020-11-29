@@ -56,6 +56,16 @@ impl GameState {
 }
 
 impl Stage for GameState {
+    fn enter(&mut self, _ctx: &mut Context) {
+        self.move_timer.resume();
+        self.food_timer.resume();
+    }
+
+    fn exit(&mut self, _ctx: &mut Context) {
+        self.move_timer.paused();
+        self.food_timer.paused();
+    }
+
     fn resize_event(&mut self, ctx: &mut Context, _width: f32, _height: f32) {
         self.game_world.camera.resize(ctx);
     }
