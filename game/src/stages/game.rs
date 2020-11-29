@@ -1,15 +1,12 @@
-use miniquad::{Context,  KeyCode, KeyMods};
+use miniquad::{Context, KeyCode, KeyMods};
 use smallvec::SmallVec;
 
-use crate::assets;
 use crate::components;
 use crate::graphics;
+use crate::stages::{NextStage, Paused, Stage};
 use crate::systems;
-use crate::Vec2;
-use crate::stages::{Stage, Paused, NextStage};
 
 use crate::GameWorld;
-
 
 pub struct GameState {
     direction: components::Direction,
@@ -59,8 +56,7 @@ impl Stage for GameState {
     fn update(&mut self, _ctx: &mut Context) -> NextStage {
         if self.input.pause {
             self.input.pause = false;
-            return NextStage::Push(Box::new(Paused::new()))
-
+            return NextStage::Push(Box::new(Paused::new()));
         }
         self.direction.update(&self.input);
         systems::update_input(&mut self.game_world, &self.input);
