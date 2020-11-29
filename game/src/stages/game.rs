@@ -6,7 +6,7 @@ use crate::components;
 use crate::graphics;
 use crate::systems;
 use crate::Vec2;
-use crate::stages::{Stage, NextStage};
+use crate::stages::{Stage, Paused, NextStage};
 
 use crate::GameWorld;
 
@@ -61,6 +61,11 @@ impl Stage for GameState {
     }
 
     fn update(&mut self, _ctx: &mut Context) -> NextStage {
+        if self.input.pause {
+            self.input.pause = false;
+            return NextStage::Push(Box::new(Paused::new()))
+
+        }
         self.direction.update(&self.input);
         systems::update_input(&mut self.game_world, &self.input);
         if self.move_timer.finished() {
@@ -110,6 +115,9 @@ impl Stage for GameState {
             }
             KeyCode::Down | KeyCode::S => {
                 self.input.go_down = true;
+            }
+            KeyCode::Escape => {
+                self.input.pause = true;
             }
             _ => {}
         }

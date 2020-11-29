@@ -20,12 +20,12 @@ pub struct GameWorld {
 }
 
 struct Stage {
-    stages: Vec<Box<dyn stages::Stage>>,
+    stages: stages::StageStack,
 }
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
-        let mut stages = Vec::with_capacity(8);
+        let mut stages = stages::new_stage_stack(16);
         let game_stage = Box::new(GameState::new(ctx));
         stages.push(game_stage as Box<dyn stages::Stage>);
         Self {
@@ -37,7 +37,7 @@ impl Stage {
 
 impl EventHandler for Stage {
     fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             None => return,
         };
@@ -50,8 +50,24 @@ impl EventHandler for Stage {
             _ => return
         };
         match stage.update(ctx) {
+            stages::NextStage::Push(stage) => {
+                println!("Push");
+                 self.stages.push(stage);
+            },
+            stages::NextStage::Pop => {
+                println!("Pop");
+                 self.stages.pop().expect("Popped an Empty StageStack");
+            },
             _ => {}
-        }
+        };
+    }
+
+    fn draw(&mut self, ctx: &mut Context) {
+        let stage = match self.stages.last_mut() {
+            Some(s) => s,
+            _ => return,
+        };
+        stage.draw(ctx);
     }
 
     fn key_down_event(
@@ -61,23 +77,16 @@ impl EventHandler for Stage {
         keymods: KeyMods,
         repeat: bool,
     ) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };
         stage.key_down_event(ctx, keycode, keymods, repeat);
     }
 
-    fn draw(&mut self, ctx: &mut Context) {
-        let stage = match self.stages.get_mut(0) {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.draw(ctx);
-    }
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };
@@ -85,7 +94,7 @@ impl EventHandler for Stage {
     }
 
     fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };
@@ -99,7 +108,7 @@ impl EventHandler for Stage {
         x: f32,
         y: f32,
     ) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };
@@ -113,7 +122,7 @@ impl EventHandler for Stage {
         x: f32,
         y: f32,
     ) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };
@@ -127,7 +136,7 @@ impl EventHandler for Stage {
         keymods: KeyMods,
         repeat: bool,
     ) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };
@@ -135,7 +144,7 @@ impl EventHandler for Stage {
     }
 
     fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, keymods: KeyMods) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };
@@ -144,7 +153,7 @@ impl EventHandler for Stage {
     }
 
     fn raw_mouse_motion(&mut self, ctx: &mut Context, dx: f32, dy: f32) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };
@@ -152,7 +161,7 @@ impl EventHandler for Stage {
     }
 
     fn quit_requested_event(&mut self, ctx: &mut Context) {
-        let stage = match self.stages.get_mut(0) {
+        let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
         };

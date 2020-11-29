@@ -1,10 +1,20 @@
 use miniquad::{Context, KeyCode, KeyMods, MouseButton, TouchPhase};
 pub mod game;
+pub mod paused;
+
 pub use game::GameState;
+pub use paused::Paused;
+
+pub type StageStack = Vec<Box<dyn Stage>>;
+
+pub fn new_stage_stack(capacity: usize) -> StageStack {
+    Vec::with_capacity(capacity)
+}
 
 pub enum NextStage {
     Noop,
     Pop,
+    Push(Box<dyn Stage>),
 }
 
 pub trait Stage {

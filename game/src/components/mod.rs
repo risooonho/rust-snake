@@ -7,6 +7,7 @@ pub struct Input {
     pub go_right: bool,
     pub go_up: bool,
     pub go_down: bool,
+    pub pause: bool,
 }
 
 impl Input {
