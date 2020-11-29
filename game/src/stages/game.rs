@@ -5,8 +5,8 @@ use crate::components;
 use crate::graphics;
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
-use crate::Vec2;
 
+use crate::graphics::font::Font;
 
 pub struct GameState {
     direction: components::Direction,
@@ -15,6 +15,7 @@ pub struct GameState {
     move_timer: components::Timer,
     food_timer: components::Timer,
     renderer: graphics::MainRenderer,
+    example_font: Font,
 }
 
 impl GameState {
@@ -27,10 +28,9 @@ impl GameState {
         };
         systems::create_snake_system(&mut game_world);
         game_world.world.spawn((
-            components::Position(Vec2::new(-10., -4.)),
+            components::Position(glam::Vec2::new(-10., -4.)),
             components::Text::new("Score"),
         ));
-
 
         GameState {
             direction: components::Direction::Up,
@@ -39,6 +39,7 @@ impl GameState {
             move_timer: components::Timer::new(0.25),
             input: components::Input::default(),
             food_timer: components::Timer::new(1.5),
+            example_font: Font::load(include_bytes!("KenneyFuture.ttf")),
         }
     }
 }
