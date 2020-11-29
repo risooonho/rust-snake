@@ -1,4 +1,3 @@
-use glam::Vec2;
 use miniquad::*;
 use smallvec::SmallVec;
 use stages::GameState;
