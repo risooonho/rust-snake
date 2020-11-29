@@ -1,3 +1,5 @@
+use std::string::String;
+use std::str::FromStr;
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::{date, Context};
 
@@ -224,3 +226,15 @@ impl Default for Direction {
 
 #[derive(Debug, Default)]
 pub struct HeadDirection(pub Direction);
+
+pub struct Text {
+    pub string: String,
+}
+
+impl Text {
+    pub fn new(str: &str) -> Text {
+        Text {
+            string: String::from_str(str).expect("Failed to Create Text"),
+        }
+    }
+}

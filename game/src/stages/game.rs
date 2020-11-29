@@ -26,6 +26,11 @@ impl GameState {
             world: hecs::World::new(),
         };
         systems::create_snake_system(&mut game_world);
+        game_world.world.spawn((
+            components::Position(Vec2::new(-10., -4.)),
+            components::Text::new("Score"),
+        ));
+
 
         GameState {
             direction: components::Direction::Up,
