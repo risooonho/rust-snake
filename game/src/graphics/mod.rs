@@ -35,6 +35,7 @@ pub mod colors {
     pub const BLACK: Color = Color::new(0.00, 0.00, 0.00, 1.00);
     pub const BLANK: Color = Color::new(0.00, 0.00, 0.00, 0.00);
     pub const MAGENTA: Color = Color::new(1.00, 0.00, 1.00, 1.00);
+    pub const CLEAR: Color = Color::new(0., 0., 0., 0.);
 }
 
 impl Color {
