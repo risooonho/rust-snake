@@ -73,6 +73,9 @@ pub struct Font {
     cursor_x: u16,
     cursor_y: u16,
     max_line_height: u16,
+
+    glyphs: std::collections::HashMap<char, CharInfo>,
+
 }
 
 impl core::fmt::Debug for Font {
@@ -97,6 +100,7 @@ impl Font {
             cursor_x: 0,
             cursor_y: 0,
             max_line_height: 0,
+            glyphs: std::collections::HashMap::new(),
         }
     }
 
@@ -107,7 +111,8 @@ impl Font {
         }
 
         let (width, height) = (metrics.width as u16, metrics.height as u16);
-        // let advance = metrics.advance_width;
+        let advance = metrics.advance_height;
+        let (offset_x, offset_y) = (metrics.xmin, metrics.ymin);
         let x = if self.cursor_x + (width as u16) < self.font_image.width {
             if height as u16 > self.max_line_height {
                 self.max_line_height = height;
@@ -121,8 +126,21 @@ impl Font {
             self.max_line_height = height;
             Self::GAP
         };
-
         let y = self.cursor_y;
+
+        let character_info = CharInfo {
+            offset_x,
+            offset_y,
+            advance,
+            glyph_x: x as u32,
+            glyph_y: y as u32,
+            glyph_w: width as u32,
+            glyph_h: height as u32,
+
+        };
+
+        self.glyphs.insert(character, character_info);
+
         if self.cursor_y + height as u16 > self.font_image.height {
             panic!("Does not yet support Render Text expansion");
         } else {

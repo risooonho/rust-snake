@@ -50,19 +50,19 @@ pub fn make_square(ctx: &mut Context, size: f32) -> (Buffer, Buffer) {
     let vertices = [
         Vertex {
             pos: Vec2::new(-size / 2., -size / 2.),
-            uv: Vec2::new(0., 0.),
+            uv: Vec2::new(0., 1.),
         },
         Vertex {
             pos: Vec2::new(size / 2., -size / 2.),
-            uv: Vec2::new(1., 0.),
-        },
-        Vertex {
-            pos: Vec2::new(size / 2., size / 2.),
             uv: Vec2::new(1., 1.),
         },
         Vertex {
+            pos: Vec2::new(size / 2., size / 2.),
+            uv: Vec2::new(1., 0.),
+        },
+        Vertex {
             pos: Vec2::new(-size / 2., size / 2.),
-            uv: Vec2::new(0., 1.),
+            uv: Vec2::new(0., 0.),
         },
     ];
     let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];

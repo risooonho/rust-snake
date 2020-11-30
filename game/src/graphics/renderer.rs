@@ -36,7 +36,7 @@ pub struct MainRenderer {
 impl MainRenderer {
     pub fn new(ctx: &mut Context) -> Self {
         let shader = shaders::sprite::new(ctx).unwrap();
-        let shader_pipeline = Pipeline::new(
+        let shader_pipeline = Pipeline::with_params(
             ctx,
             &[BufferLayout::default()],
             &[
@@ -44,6 +44,14 @@ impl MainRenderer {
                 VertexAttribute::new("uv", VertexFormat::Float2),
             ],
             shader,
+            PipelineParams {
+                color_blend: Some(BlendState::new(
+                    miniquad::Equation::Add,
+                    miniquad::BlendFactor::Value(BlendValue::SourceAlpha),
+                    BlendFactor::OneMinusValue(BlendValue::SourceAlpha),
+                )),
+                ..Default::default()
+            }
         );
 
         let mut materials = HashMap::new();
@@ -74,7 +82,7 @@ impl MainRenderer {
             example_font.cache_glyph(char);
         }
         let tex=  example_font.texture(ctx);
-        let (vertices, indices) = utils::make_square(ctx, 16.);
+        let (vertices, indices) = utils::make_square(ctx, 32.);
         let bindings = miniquad::Bindings {
             vertex_buffers: vec![vertices],
             index_buffer: indices,
@@ -140,9 +148,10 @@ impl MainRenderer {
         }
 
         let model = glam::Mat4::from_rotation_translation(
-            glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (180.0f32).to_radians()),
-            glam::Vec3::new(-19., -12., 0.),
+            glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
+            glam::Vec3::new(10., 0., 0.),
         );
+
         uniform.model = model;
         ctx.apply_bindings(&self.debug_font_bindings);
         ctx.apply_uniforms(&uniform);
