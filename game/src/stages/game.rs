@@ -1,4 +1,4 @@
-use miniquad::{Context, KeyCode, KeyMods};
+use miniquad::{Buffer, BufferType, Context, KeyCode, KeyMods};
 use smallvec::SmallVec;
 
 use crate::components;
@@ -24,9 +24,8 @@ impl GameState {
         systems::create_snake_system(&mut game_world);
         game_world.world.spawn((
             components::Position(glam::Vec2::new(-10., -4.)),
-            components::Text::new("Score"),
+            components::Text::new("Test"),
         ));
-
 
         GameState {
             direction: components::Direction::Up,
@@ -121,6 +120,59 @@ impl Stage for GameState {
         renderer.update_view(&self.game_world.camera);
         systems::gather_render_cmds(&mut self.game_world, &mut renderer.render_commands);
         systems::debug_render_cmds(&mut self.game_world, &mut renderer.render_commands);
+        draw_text(ctx, &mut self.game_world, renderer);
         renderer.draw(ctx);
+    }
+}
+
+fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
+    if renderer.font_mesh.is_some() {
+        return;
+    }
+    use crate::shaders::Vertex;
+    use glam::Vec2;
+
+    let GameWorld { world, .. } = game_world;
+    for (_, (text, _pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
+        let mut vertices: Vec<Vertex> = Vec::with_capacity(text.string.chars().count() * 4);
+        let mut indices: Vec<u16> = Vec::with_capacity(text.string.chars().count() * 6);
+        // let width = renderer.example_font.font_image.width;
+        // let height = renderer.example_font.font_image.height;
+        let mut offset = 0.0f32;
+        let scale = 0.1f32;
+        for (index, character) in text.string.chars().enumerate() {
+            let index = index as u16;
+            if let Some(glyph) = renderer.example_font.glyphs.get(&character) {
+                println!("{:?}", glyph);
+                let w = (glyph.glyph_w as f32 / 2.) * scale;
+                let h = (glyph.glyph_h as f32 / 2.) * scale;
+                vertices.push(Vertex {
+                    pos: Vec2::new(offset - w, -h),
+                    uv: Vec2::new(0., 1.),
+                });
+                vertices.push(Vertex {
+                    pos: Vec2::new(offset + w, -h),
+                    uv: Vec2::new(1., 1.),
+                });
+                vertices.push(Vertex {
+                    pos: Vec2::new(offset + w, h),
+                    uv: Vec2::new(1., 0.),
+                });
+                vertices.push(Vertex {
+                    pos: Vec2::new(offset - w, h),
+                    uv: Vec2::new(0., 0.),
+                });
+                indices.push(0 + (index * 4));
+                indices.push(1 + (index * 4));
+                indices.push(2 + (index * 4));
+                indices.push(0 + (index * 4));
+                indices.push(2 + (index * 4));
+                indices.push(3 + (index * 4));
+                offset += glyph.advance * scale;
+            }
+        }
+        let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &vertices);
+        let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
+        renderer.font_mesh = Some((vec![vertex_buffer], index_buffer));
     }
 }

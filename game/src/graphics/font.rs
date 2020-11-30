@@ -1,7 +1,7 @@
 use crate::graphics::{colors, Color};
 
 // TODO: This can replace some of color image generation functions
-struct CpuImage {
+pub struct CpuImage {
     pub bytes: Vec<u8>,
     pub width: u16,
     pub height: u16,
@@ -51,15 +51,17 @@ impl CpuImage {
         self.get_image_data_mut()[(y * width + x) as usize] = color.into();
     }
 }
-struct CharInfo {
-    offset_x: i32,
-    offset_y: i32,
-    advance: f32,
 
-    glyph_x: u32,
-    glyph_y: u32,
-    glyph_w: u32,
-    glyph_h: u32,
+#[derive(Debug, Copy, Clone)]
+pub struct CharInfo {
+    pub offset_x: i32,
+    pub offset_y: i32,
+    pub advance: f32,
+
+    pub glyph_x: u32,
+    pub glyph_y: u32,
+    pub glyph_w: u32,
+    pub glyph_h: u32,
 }
 
 pub fn ascii_character_list() -> Vec<char> {
@@ -68,13 +70,13 @@ pub fn ascii_character_list() -> Vec<char> {
 
 // TODO(jhurstwright): I kind of don't think I need to store the text in main memory, I think I can just load and unload it in bulk from gpu later
 pub struct Font {
-    font: fontdue::Font,
-    font_image: CpuImage,
-    cursor_x: u16,
-    cursor_y: u16,
-    max_line_height: u16,
+    pub font: fontdue::Font,
+    pub font_image: CpuImage,
+    pub cursor_x: u16,
+    pub cursor_y: u16,
+    pub max_line_height: u16,
 
-    glyphs: std::collections::HashMap<char, CharInfo>,
+    pub glyphs: std::collections::HashMap<char, CharInfo>,
 
 }
 
@@ -111,7 +113,7 @@ impl Font {
         }
 
         let (width, height) = (metrics.width as u16, metrics.height as u16);
-        let advance = metrics.advance_height;
+        let advance = metrics.advance_width;
         let (offset_x, offset_y) = (metrics.xmin, metrics.ymin);
         let x = if self.cursor_x + (width as u16) < self.font_image.width {
             if height as u16 > self.max_line_height {
