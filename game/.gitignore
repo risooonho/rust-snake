@@ -1,3 +1,4 @@
 target/
 *.rdbg
 *.mm_profdata
+.cargo/config.toml
