@@ -3,6 +3,8 @@ use smallvec::SmallVec;
 // TODO(jhurstwright): Replace with no_std hashmap
 use std::collections::HashMap;
 
+use crate::graphics::font;
+use crate::utils;
 use crate::assets;
 use crate::components;
 use crate::graphics;
@@ -21,6 +23,8 @@ pub struct SpriteRenderCommand {
 }
 
 pub struct MainRenderer {
+    pub example_font: font::Font,
+    pub debug_font_bindings: miniquad::Bindings,
     pub shader_pipeline: miniquad::Pipeline,
     pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
     pub meshes: Meshes,
@@ -65,12 +69,26 @@ impl MainRenderer {
         meshes.insert(assets::AssetType::Snake, (vec![snake_mesh.0], snake_mesh.1));
         meshes.insert(assets::AssetType::Arrow, (vec![arrow_mesh.0], arrow_mesh.1));
 
+        let mut example_font = font::Font::load(include_bytes!("KenneyFuture.ttf"));
+        for char in font::ascii_character_list() {
+            example_font.cache_glyph(char);
+        }
+        let tex=  example_font.texture(ctx);
+        let (vertices, indices) = utils::make_square(ctx, 16.);
+        let bindings = miniquad::Bindings {
+            vertex_buffers: vec![vertices],
+            index_buffer: indices,
+            images: vec![tex]
+        };
+
         Self {
-            shader_pipeline,
-            render_commands: SmallVec::new(),
+            debug_font_bindings: bindings,
+            example_font,
             materials,
             meshes,
             projection: glam::Mat4::identity(),
+            render_commands: SmallVec::new(),
+            shader_pipeline,
             view: glam::Mat4::identity(),
         }
     }
@@ -118,7 +136,17 @@ impl MainRenderer {
                 ctx.apply_uniforms(&uniform);
                 ctx.draw(0, *num_of_elements, 1);
             }
+
         }
+
+        let model = glam::Mat4::from_rotation_translation(
+            glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (180.0f32).to_radians()),
+            glam::Vec3::new(-19., -12., 0.),
+        );
+        uniform.model = model;
+        ctx.apply_bindings(&self.debug_font_bindings);
+        ctx.apply_uniforms(&uniform);
+        ctx.draw(0, 6, 1);
         ctx.end_render_pass();
         ctx.commit_frame();
         self.render_commands.clear();

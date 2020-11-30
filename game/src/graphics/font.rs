@@ -135,4 +135,13 @@ impl Font {
             }
         }
     }
+
+    pub fn texture(&self, ctx: &mut miniquad::Context) -> miniquad::Texture {
+        miniquad::Texture::from_rgba8(
+            ctx,
+            self.font_image.width,
+            self.font_image.height,
+            self.font_image.bytes.as_slice(),
+        )
+    }
 }
