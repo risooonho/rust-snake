@@ -6,21 +6,16 @@ use crate::graphics;
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
 
-use crate::graphics::font::Font;
-
 pub struct GameState {
     direction: components::Direction,
     game_world: GameWorld,
     input: components::Input,
     move_timer: components::Timer,
     food_timer: components::Timer,
-    renderer: graphics::MainRenderer,
-    example_font: Font,
 }
 
 impl GameState {
     pub fn new(ctx: &mut miniquad::Context) -> Self {
-        let renderer = graphics::MainRenderer::new(ctx);
         let mut game_world = GameWorld {
             events: SmallVec::new(),
             camera: components::Camera2D::new(ctx, 20.),
@@ -32,14 +27,13 @@ impl GameState {
             components::Text::new("Score"),
         ));
 
+
         GameState {
             direction: components::Direction::Up,
             game_world,
-            renderer,
             move_timer: components::Timer::new(0.25),
             input: components::Input::default(),
             food_timer: components::Timer::new(1.5),
-            example_font: Font::load(include_bytes!("KenneyFuture.ttf")),
         }
     }
 }
@@ -86,7 +80,6 @@ impl Stage for GameState {
             self.move_timer.reset();
             self.food_timer.reset();
         }
-        self.renderer.update_view(&self.game_world.camera);
 
         self.input = Default::default();
         self.game_world.events.clear();
@@ -124,9 +117,10 @@ impl Stage for GameState {
         }
     }
 
-    fn draw(&mut self, ctx: &mut Context) {
-        systems::gather_render_cmds(&mut self.game_world, &mut self.renderer.render_commands);
-        systems::debug_render_cmds(&mut self.game_world, &mut self.renderer.render_commands);
-        self.renderer.draw(ctx);
+    fn draw(&mut self, ctx: &mut Context, renderer: &mut graphics::MainRenderer) {
+        renderer.update_view(&self.game_world.camera);
+        systems::gather_render_cmds(&mut self.game_world, &mut renderer.render_commands);
+        systems::debug_render_cmds(&mut self.game_world, &mut renderer.render_commands);
+        renderer.draw(ctx);
     }
 }

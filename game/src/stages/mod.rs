@@ -2,6 +2,7 @@ use miniquad::{Context, KeyCode, KeyMods, MouseButton, TouchPhase};
 pub mod game;
 pub mod paused;
 
+use crate::graphics;
 pub use game::GameState;
 pub use paused::Paused;
 
@@ -21,7 +22,7 @@ pub trait Stage {
     fn enter(&mut self, _ctx: &mut Context) {}
     fn exit(&mut self, _ctx: &mut Context) {}
     fn update(&mut self, _ctx: &mut Context) -> NextStage;
-    fn draw(&mut self, _ctx: &mut Context) {}
+    fn draw(&mut self, _ctx: &mut Context, renderer: &mut graphics::MainRenderer) {}
     fn resize_event(&mut self, _ctx: &mut Context, _width: f32, _height: f32) {}
     fn mouse_motion_event(&mut self, _ctx: &mut Context, _x: f32, _y: f32) {}
     fn mouse_wheel_event(&mut self, _ctx: &mut Context, _x: f32, _y: f32) {}

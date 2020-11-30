@@ -2,6 +2,8 @@ use miniquad::*;
 use smallvec::SmallVec;
 use stages::GameState;
 
+use crate::graphics::font;
+
 mod assets;
 mod components;
 mod events;
@@ -19,14 +21,25 @@ pub struct GameWorld {
 
 struct Stage {
     stages: stages::StageStack,
+    renderer: graphics::MainRenderer,
+    example_font: font::Font,
 }
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
+        let renderer = graphics::MainRenderer::new(ctx);
         let mut stages = stages::new_stage_stack(16);
         let game_stage = Box::new(GameState::new(ctx));
         stages.push(game_stage as Box<dyn stages::Stage>);
-        Self { stages }
+
+        let mut example_font = font::Font::load(include_bytes!("KenneyFuture.ttf"));
+        println!("example_font before: {:?}", example_font);
+        for char in font::ascii_character_list() {
+            example_font.cache_glyph(char);
+        }
+        println!("example_font after: {:?}", example_font);
+
+        Self { stages, renderer, example_font }
     }
 }
 
@@ -68,7 +81,7 @@ impl EventHandler for Stage {
             Some(s) => s,
             _ => return,
         };
-        stage.draw(ctx);
+        stage.draw(ctx, &mut self.renderer);
     }
 
     fn key_down_event(

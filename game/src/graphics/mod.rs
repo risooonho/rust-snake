@@ -63,6 +63,12 @@ impl From<(u8, u8, u8, u8)> for Color {
     }
 }
 
+impl Into<[u8; 4]> for Color {
+    fn into(self) -> [u8; 4] {
+        self.as_u8()
+    }
+}
+
 impl Into<(u8, u8, u8, u8)> for Color {
     fn into(self) -> (u8, u8, u8, u8) {
         let x = (self.0[0] * 255.0f32).max(0.0).min(255.0) as u8;

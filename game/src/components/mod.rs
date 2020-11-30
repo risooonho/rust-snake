@@ -1,5 +1,4 @@
-use std::string::String;
-use std::str::FromStr;
+use core::str::FromStr;
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::{date, Context};
 
