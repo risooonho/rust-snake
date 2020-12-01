@@ -45,10 +45,10 @@ impl CpuImage {
         }
     }
 
-    pub fn set_pixel(&mut self, x: u16, y: u16, color: Color) {
-        let width = self.width;
+    pub fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
+        let width = self.width as usize;
 
-        self.get_image_data_mut()[(y * width + x) as usize] = color.into();
+        self.get_image_data_mut()[y * width + x] = color.into();
     }
 }
 
@@ -92,10 +92,10 @@ impl core::fmt::Debug for Font {
 }
 
 impl Font {
-    const GAP: u16 = 2;
+    const GAP: u16 = 16;
     pub fn load(bytes: &[u8]) -> Self {
         let font = fontdue::Font::from_bytes(&bytes[..], fontdue::FontSettings::default()).unwrap();
-        let font_image = CpuImage::gen_image_color(512, 512, colors::CLEAR);
+        let font_image = CpuImage::gen_image_color(1024, 1024, colors::CLEAR);
         Self {
             font,
             font_image,
@@ -106,8 +106,12 @@ impl Font {
         }
     }
 
+    pub fn image_dimensions(&self) -> (u16, u16) {
+        (self.font_image.width, self.font_image.height)
+    }
+
     pub fn cache_glyph(&mut self, character: char) {
-        let (metrics, bitmap) = self.font.rasterize(character, 20.);
+        let (metrics, bitmap) = self.font.rasterize(character, 48.);
         if metrics.advance_height != 0.0 {
             panic!("Vertical fonts are not yet supported");
         }
@@ -115,7 +119,7 @@ impl Font {
         let (width, height) = (metrics.width as u16, metrics.height as u16);
         let advance = metrics.advance_width;
         let (offset_x, offset_y) = (metrics.xmin, metrics.ymin);
-        let x = if self.cursor_x + (width as u16) < self.font_image.width {
+        let x = if self.cursor_x + (Font::GAP + width as u16) < self.font_image.width {
             if height as u16 > self.max_line_height {
                 self.max_line_height = height;
             }
@@ -150,18 +154,24 @@ impl Font {
                 for i in 0..width {
                     let coverage = bitmap[(j * width + i) as usize] as f32 / 255.0;
                     self.font_image
-                        .set_pixel(x + i, y + j, Color::new(1., 1., 1., coverage))
+                        .set_pixel((x + i) as usize, (y + j) as usize, Color::new(1., 1., 1., coverage))
                 }
             }
         }
     }
 
     pub fn texture(&self, ctx: &mut miniquad::Context) -> miniquad::Texture {
-        miniquad::Texture::from_rgba8(
+        miniquad::Texture::from_data_and_format(
             ctx,
-            self.font_image.width,
-            self.font_image.height,
             self.font_image.bytes.as_slice(),
+            miniquad::TextureParams {
+                format: miniquad::TextureFormat::RGBA8,
+                wrap: miniquad::TextureWrap::Clamp,
+                filter: miniquad::FilterMode::Nearest,
+                width: self.font_image.width as u32,
+                height: self.font_image.height as u32,
+
+            }
         )
     }
 }

@@ -2,7 +2,7 @@ use miniquad::{Buffer, BufferType, Context, KeyCode, KeyMods};
 use smallvec::SmallVec;
 
 use crate::components;
-use crate::graphics;
+use crate::graphics::{self, font};
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
 
@@ -136,38 +136,53 @@ fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graph
     for (_, (text, _pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
         let mut vertices: Vec<Vertex> = Vec::with_capacity(text.string.chars().count() * 4);
         let mut indices: Vec<u16> = Vec::with_capacity(text.string.chars().count() * 6);
-        // let width = renderer.example_font.font_image.width;
-        // let height = renderer.example_font.font_image.height;
+        let (width, height) = renderer.example_font.image_dimensions();
         let mut offset = 0.0f32;
-        let scale = 0.1f32;
+        let scale = 0.025f32;
         for (index, character) in text.string.chars().enumerate() {
             let index = index as u16;
             if let Some(glyph) = renderer.example_font.glyphs.get(&character) {
-                println!("{:?}", glyph);
-                let w = (glyph.glyph_w as f32 / 2.) * scale;
-                let h = (glyph.glyph_h as f32 / 2.) * scale;
+                let font::CharInfo{
+                    glyph_x,
+                    glyph_y,
+                    glyph_h,
+                    glyph_w,
+                    ..
+                } = *glyph;
+                let w = (glyph_w as f32 / 2.) * scale;
+                let h = (glyph_h as f32 / 2.) * scale;
+                let texture_x = glyph_x as f32 / width as f32;
+                let texture_y = glyph_y as f32 / height as f32;
+                let texture_w = glyph_w as f32 / width as f32;
+                let texture_h = glyph_h as f32 / height as f32;
+
+                println!("x: {:?}, y: {:?}", texture_x, texture_y);
+                println!("x: {:?}, y: {:?}", texture_x + texture_w, texture_y + texture_h);
+
                 vertices.push(Vertex {
                     pos: Vec2::new(offset - w, -h),
-                    uv: Vec2::new(0., 1.),
+                    uv: Vec2::new(texture_x, texture_y + texture_h),
                 });
                 vertices.push(Vertex {
                     pos: Vec2::new(offset + w, -h),
-                    uv: Vec2::new(1., 1.),
+                    uv: Vec2::new(texture_x + texture_w, texture_y + texture_h),
                 });
                 vertices.push(Vertex {
                     pos: Vec2::new(offset + w, h),
-                    uv: Vec2::new(1., 0.),
+                    uv: Vec2::new(texture_x + texture_w, texture_y),
                 });
                 vertices.push(Vertex {
                     pos: Vec2::new(offset - w, h),
-                    uv: Vec2::new(0., 0.),
+                    uv: Vec2::new(texture_x, texture_y),
                 });
+
                 indices.push(0 + (index * 4));
                 indices.push(1 + (index * 4));
                 indices.push(2 + (index * 4));
                 indices.push(0 + (index * 4));
                 indices.push(2 + (index * 4));
                 indices.push(3 + (index * 4));
+
                 offset += glyph.advance * scale;
             }
         }

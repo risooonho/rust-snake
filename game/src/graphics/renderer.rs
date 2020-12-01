@@ -160,14 +160,14 @@ impl MainRenderer {
 
         // Show how the text is Rendered
         {
-            // let model = glam::Mat4::from_rotation_translation(
-            //     glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
-            //     glam::Vec3::new(10., 0., 0.),
-            // );
-            // uniform.model = model;
-            // ctx.apply_bindings(&self.debug_font_bindings);
-            // ctx.apply_uniforms(&uniform);
-            // ctx.draw(0, 6, 1);
+            let model = glam::Mat4::from_rotation_translation(
+                glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
+                glam::Vec3::new(10., 0., 0.),
+            );
+            uniform.model = model;
+            ctx.apply_bindings(&self.debug_font_bindings);
+            ctx.apply_uniforms(&uniform);
+            ctx.draw(0, 6, 1);
         }
 
         // Render the Font
@@ -182,6 +182,7 @@ impl MainRenderer {
                         ),
                         glam::Vec3::new(0., 0., 0.),
                     );
+                    let m = &self.debug_font_bindings.images;
                     uniform.model = model;
                     let bindings = miniquad::Bindings {
                         vertex_buffers: v.clone(),
