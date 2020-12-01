@@ -185,7 +185,7 @@ impl MainRenderer {
         // }
 
         // Render the Font
-        for RenderFontCommand { .. } in self.render_font_commands.iter() {
+        for RenderFontCommand { text, .. } in self.render_font_commands.iter() {
             if let Some((v, i)) = &self.font_mesh {
                 let model = glam::Mat4::from_rotation_translation(
                     glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
@@ -200,7 +200,7 @@ impl MainRenderer {
                 };
                 ctx.apply_bindings(&bindings);
                 ctx.apply_uniforms(&uniform);
-                ctx.draw(0, 6 * 4, 1);
+                ctx.draw(0, 6 * text.len() as i32, 1);
             }
         }
         ctx.end_render_pass();

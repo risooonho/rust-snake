@@ -24,7 +24,7 @@ impl GameState {
         systems::create_snake_system(&mut game_world);
         game_world.world.spawn((
             components::Position(glam::Vec2::new(-10., -4.)),
-            components::Text::new("Test"),
+            components::Text::new("Test ABC"),
         ));
 
         GameState {
