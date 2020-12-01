@@ -95,7 +95,7 @@ impl MainRenderer {
             index_buffer: indices,
             images: vec![tex],
         };
-        fonts.insert(example_font.name.clone(),example_font);
+        fonts.insert(example_font.name.clone(), example_font);
 
         Self {
             debug_font_bindings: bindings,
@@ -176,28 +176,20 @@ impl MainRenderer {
         // Render the Font
 
         if let Some((v, i)) = &self.font_mesh {
-            match self.materials.get(&assets::AssetType::Food) {
-                Some(_) => {
-                    let model = glam::Mat4::from_rotation_translation(
-                        glam::Quat::from_axis_angle(
-                            glam::Vec3::new(0., 0., 1.),
-                            (0.0f32).to_radians(),
-                        ),
-                        glam::Vec3::new(0., 0., 0.),
-                    );
-                    let m = &self.debug_font_bindings.images;
-                    uniform.model = model;
-                    let bindings = miniquad::Bindings {
-                        vertex_buffers: v.clone(),
-                        index_buffer: i.clone(),
-                        images: m.clone(),
-                    };
-                    ctx.apply_bindings(&bindings);
-                    ctx.apply_uniforms(&uniform);
-                    ctx.draw(0, 6 * 4, 1);
-                }
-                _ => {}
+            let model = glam::Mat4::from_rotation_translation(
+                glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
+                glam::Vec3::new(0., 0., 0.),
+            );
+            let m = &self.debug_font_bindings.images;
+            uniform.model = model;
+            let bindings = miniquad::Bindings {
+                vertex_buffers: v.clone(),
+                index_buffer: i.clone(),
+                images: m.clone(),
             };
+            ctx.apply_bindings(&bindings);
+            ctx.apply_uniforms(&uniform);
+            ctx.draw(0, 6 * 4, 1);
         }
 
         ctx.end_render_pass();
