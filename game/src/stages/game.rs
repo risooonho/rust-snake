@@ -156,8 +156,6 @@ fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graph
                 let texture_w = glyph_w as f32 / width as f32;
                 let texture_h = glyph_h as f32 / height as f32;
 
-                println!("x: {:?}, y: {:?}", texture_x, texture_y);
-                println!("x: {:?}, y: {:?}", texture_x + texture_w, texture_y + texture_h);
 
                 vertices.push(Vertex {
                     pos: Vec2::new(offset - w, -h),
