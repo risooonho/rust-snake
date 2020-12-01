@@ -134,14 +134,18 @@ fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graph
 
     let GameWorld { world, .. } = game_world;
     for (_, (text, _pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
+        let font = match renderer.fonts.get("KenneyFuture") {
+            Some(f) => f,
+            _ => return,
+        };
         let mut vertices: Vec<Vertex> = Vec::with_capacity(text.string.chars().count() * 4);
         let mut indices: Vec<u16> = Vec::with_capacity(text.string.chars().count() * 6);
-        let (width, height) = renderer.example_font.image_dimensions();
+        let (width, height) = font.image_dimensions();
         let mut offset = 0.0f32;
         let scale = 0.025f32;
         for (index, character) in text.string.chars().enumerate() {
             let index = index as u16;
-            if let Some(glyph) = renderer.example_font.glyphs.get(&character) {
+            if let Some(glyph) = font.glyphs.get(&character) {
                 let font::CharInfo{
                     glyph_x,
                     glyph_y,

@@ -70,6 +70,7 @@ pub fn ascii_character_list() -> Vec<char> {
 
 // TODO(jhurstwright): I kind of don't think I need to store the text in main memory, I think I can just load and unload it in bulk from gpu later
 pub struct Font {
+    pub name: String,
     pub font: fontdue::Font,
     pub font_image: CpuImage,
     pub cursor_x: u16,
@@ -77,7 +78,6 @@ pub struct Font {
     pub max_line_height: u16,
 
     pub glyphs: std::collections::HashMap<char, CharInfo>,
-
 }
 
 impl core::fmt::Debug for Font {
@@ -93,10 +93,11 @@ impl core::fmt::Debug for Font {
 
 impl Font {
     const GAP: u16 = 16;
-    pub fn load(bytes: &[u8]) -> Self {
+    pub fn load<T: Into<String>>(name: T, bytes: &[u8]) -> Self {
         let font = fontdue::Font::from_bytes(&bytes[..], fontdue::FontSettings::default()).unwrap();
         let font_image = CpuImage::gen_image_color(1024, 1024, colors::CLEAR);
         Self {
+            name: name.into(),
             font,
             font_image,
             cursor_x: 0,

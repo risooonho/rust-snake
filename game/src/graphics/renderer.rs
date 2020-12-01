@@ -23,10 +23,10 @@ pub struct SpriteRenderCommand {
 }
 
 pub struct MainRenderer {
-    pub example_font: font::Font,
     pub debug_font_bindings: miniquad::Bindings,
     pub shader_pipeline: miniquad::Pipeline,
     pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
+    pub fonts: HashMap<String, font::Font>,
     pub font_mesh: Option<(Vec<miniquad::Buffer>, miniquad::Buffer)>,
     pub meshes: Meshes,
     pub materials: Materials,
@@ -67,6 +67,8 @@ impl MainRenderer {
         let arrow_texture =
             crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RED);
 
+        let mut fonts = HashMap::new();
+
         materials.insert(assets::AssetType::Food, vec![food_texture]);
         materials.insert(assets::AssetType::Tail, vec![tail_texture]);
         materials.insert(assets::AssetType::Snake, vec![snake_texture]);
@@ -82,7 +84,7 @@ impl MainRenderer {
         meshes.insert(assets::AssetType::Snake, (vec![snake_mesh.0], snake_mesh.1));
         meshes.insert(assets::AssetType::Arrow, (vec![arrow_mesh.0], arrow_mesh.1));
 
-        let mut example_font = font::Font::load(include_bytes!("KenneyFuture.ttf"));
+        let mut example_font = font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
         for char in font::ascii_character_list() {
             example_font.cache_glyph(char);
         }
@@ -93,17 +95,18 @@ impl MainRenderer {
             index_buffer: indices,
             images: vec![tex],
         };
+        fonts.insert(example_font.name.clone(),example_font);
 
         Self {
             debug_font_bindings: bindings,
-            example_font,
+            font_mesh: None,
+            fonts,
             materials,
             meshes,
             projection: glam::Mat4::identity(),
             render_commands: SmallVec::new(),
             shader_pipeline,
             view: glam::Mat4::identity(),
-            font_mesh: None,
         }
     }
 
@@ -174,7 +177,7 @@ impl MainRenderer {
 
         if let Some((v, i)) = &self.font_mesh {
             match self.materials.get(&assets::AssetType::Food) {
-                Some(m) => {
+                Some(_) => {
                     let model = glam::Mat4::from_rotation_translation(
                         glam::Quat::from_axis_angle(
                             glam::Vec3::new(0., 0., 1.),
@@ -193,10 +196,9 @@ impl MainRenderer {
                     ctx.apply_uniforms(&uniform);
                     ctx.draw(0, 6 * 4, 1);
                 }
-                _ => {},
+                _ => {}
             };
         }
-
 
         ctx.end_render_pass();
         ctx.commit_frame();
