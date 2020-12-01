@@ -22,9 +22,18 @@ pub struct SpriteRenderCommand {
     pub num_of_elements: i32,
 }
 
+#[derive(Debug, Clone)]
+pub struct RenderFontCommand {
+    pub font: String,
+    pub text: String,
+    pub position: glam::Vec2,
+}
+
 pub struct MainRenderer {
     pub debug_font_bindings: miniquad::Bindings,
     pub shader_pipeline: miniquad::Pipeline,
+    // TODO(jhurstwright): These should be consolidated into a UnionEnum
+    pub render_font_commands: SmallVec<[RenderFontCommand; 32]>,
     pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
     pub fonts: HashMap<String, font::Font>,
     pub font_mesh: Option<(Vec<miniquad::Buffer>, miniquad::Buffer)>,
@@ -104,6 +113,7 @@ impl MainRenderer {
             materials,
             meshes,
             projection: glam::Mat4::identity(),
+            render_font_commands: SmallVec::new(),
             render_commands: SmallVec::new(),
             shader_pipeline,
             view: glam::Mat4::identity(),
@@ -162,36 +172,37 @@ impl MainRenderer {
         }
 
         // Show how the text is Rendered
-        {
-            let model = glam::Mat4::from_rotation_translation(
-                glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
-                glam::Vec3::new(10., 0., 0.),
-            );
-            uniform.model = model;
-            ctx.apply_bindings(&self.debug_font_bindings);
-            ctx.apply_uniforms(&uniform);
-            ctx.draw(0, 6, 1);
-        }
+        // TODO(jhurstwright): I still want to put this into the Debug UI
+        // {
+        //     let model = glam::Mat4::from_rotation_translation(
+        //         glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
+        //         glam::Vec3::new(10., 0., 0.),
+        //     );
+        //     uniform.model = model;
+        //     ctx.apply_bindings(&self.debug_font_bindings);
+        //     ctx.apply_uniforms(&uniform);
+        //     ctx.draw(0, 6, 1);
+        // }
 
         // Render the Font
-
-        if let Some((v, i)) = &self.font_mesh {
-            let model = glam::Mat4::from_rotation_translation(
-                glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
-                glam::Vec3::new(0., 0., 0.),
-            );
-            let m = &self.debug_font_bindings.images;
-            uniform.model = model;
-            let bindings = miniquad::Bindings {
-                vertex_buffers: v.clone(),
-                index_buffer: i.clone(),
-                images: m.clone(),
-            };
-            ctx.apply_bindings(&bindings);
-            ctx.apply_uniforms(&uniform);
-            ctx.draw(0, 6 * 4, 1);
+        for RenderFontCommand { .. } in self.render_font_commands.iter() {
+            if let Some((v, i)) = &self.font_mesh {
+                let model = glam::Mat4::from_rotation_translation(
+                    glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
+                    glam::Vec3::new(0., 0., 0.),
+                );
+                let m = &self.debug_font_bindings.images;
+                uniform.model = model;
+                let bindings = miniquad::Bindings {
+                    vertex_buffers: v.clone(),
+                    index_buffer: i.clone(),
+                    images: m.clone(),
+                };
+                ctx.apply_bindings(&bindings);
+                ctx.apply_uniforms(&uniform);
+                ctx.draw(0, 6 * 4, 1);
+            }
         }
-
         ctx.end_render_pass();
         ctx.commit_frame();
         self.render_commands.clear();

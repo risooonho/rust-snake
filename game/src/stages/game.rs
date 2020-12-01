@@ -126,13 +126,21 @@ impl Stage for GameState {
 }
 
 fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
-    if renderer.font_mesh.is_some() {
-        return;
-    }
     use crate::shaders::Vertex;
     use glam::Vec2;
-
     let GameWorld { world, .. } = game_world;
+    if renderer.font_mesh.is_some() {
+        for (_, (text, pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
+            let cmd = graphics::renderer::RenderFontCommand {
+                font: "KenneyFuture".to_string(),
+                text: text.string.clone(),
+                position: pos.0,
+            };
+            renderer.render_font_commands.push(cmd);
+        }
+        return;
+    }
+
     for (_, (text, _pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
         let font = match renderer.fonts.get("KenneyFuture") {
             Some(f) => f,
@@ -146,7 +154,7 @@ fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graph
         for (index, character) in text.string.chars().enumerate() {
             let index = index as u16;
             if let Some(glyph) = font.glyphs.get(&character) {
-                let font::CharInfo{
+                let font::CharInfo {
                     glyph_x,
                     glyph_y,
                     glyph_h,
@@ -159,7 +167,6 @@ fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graph
                 let texture_y = glyph_y as f32 / height as f32;
                 let texture_w = glyph_w as f32 / width as f32;
                 let texture_h = glyph_h as f32 / height as f32;
-
 
                 vertices.push(Vertex {
                     pos: Vec2::new(offset - w, -h),
