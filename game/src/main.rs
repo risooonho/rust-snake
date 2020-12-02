@@ -75,17 +75,11 @@ impl EventHandler for Stage {
 
     fn key_down_event(
         &mut self,
-        ctx: &mut Context,
+        _ctx: &mut Context,
         keycode: KeyCode,
-        keymods: KeyMods,
+        _keymods: KeyMods,
         repeat: bool,
     ) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.key_down_event(ctx, keycode, keymods, repeat);
-
         if repeat {
             return;
         }
@@ -109,71 +103,6 @@ impl EventHandler for Stage {
             }
             _ => {}
         }
-    }
-
-    fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.mouse_motion_event(ctx, x, y);
-    }
-
-    fn mouse_wheel_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.mouse_wheel_event(ctx, x, y);
-    }
-
-    fn mouse_button_down_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.mouse_button_down_event(ctx, button, x, y);
-    }
-
-    fn mouse_button_up_event(&mut self, ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.mouse_button_up_event(ctx, button, x, y);
-    }
-
-    fn char_event(&mut self, ctx: &mut Context, character: char, keymods: KeyMods, repeat: bool) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.char_event(ctx, character, keymods, repeat);
-    }
-
-    fn key_up_event(&mut self, ctx: &mut Context, keycode: KeyCode, keymods: KeyMods) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.key_up_event(ctx, keycode, keymods);
-
-    }
-
-    fn raw_mouse_motion(&mut self, ctx: &mut Context, dx: f32, dy: f32) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.raw_mouse_motion(ctx, dx, dy);
-    }
-
-    fn quit_requested_event(&mut self, ctx: &mut Context) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.quit_requested_event(ctx);
     }
 }
 
