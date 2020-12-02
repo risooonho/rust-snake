@@ -69,6 +69,7 @@ impl EventHandler for Stage {
             _ => return,
         };
         stage.draw(ctx, &mut self.renderer);
+        self.renderer.draw(ctx);
     }
 
     fn key_down_event(

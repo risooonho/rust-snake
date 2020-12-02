@@ -91,35 +91,22 @@ impl Stage for GameState {
         systems::gather_render_cmds(&mut self.game_world, &mut renderer.render_commands);
         systems::debug_render_cmds(&mut self.game_world, &mut renderer.render_commands);
         draw_text(ctx, &mut self.game_world, renderer);
-        renderer.draw(ctx);
     }
 }
 
-fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
-    use crate::shaders::Vertex;
-    use glam::Vec2;
-    let GameWorld { world, .. } = game_world;
-
-    for (_, (text, pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
+fn create_text_buffer(renderer: &mut graphics::MainRenderer, ctx: &mut Context, text: String, font: String) -> Option<(Vec<miniquad::Buffer>, miniquad::Buffer)> {
         let font = match renderer.fonts.get("KenneyFuture") {
             Some(f) => f,
-            _ => return,
+            _ => return None,
         };
-        if let Some(_) = renderer.texts.get(&text.string) {
-            let cmd = graphics::renderer::RenderFontCommand {
-                font: "KenneyFuture".to_string(),
-                text: text.string.clone(),
-                position: pos.0,
-            };
-            renderer.render_font_commands.push(cmd);
-            continue;
-        }
-        let mut vertices: Vec<Vertex> = Vec::with_capacity(text.string.chars().count() * 4);
-        let mut indices: Vec<u16> = Vec::with_capacity(text.string.chars().count() * 6);
+        use crate::shaders::Vertex;
+        use glam::Vec2;
+        let mut vertices: Vec<Vertex> = Vec::with_capacity(text.chars().count() * 4);
+        let mut indices: Vec<u16> = Vec::with_capacity(text.chars().count() * 6);
         let (width, height) = font.image_dimensions();
         let mut offset = 0.0f32;
         let scale = 0.025f32;
-        for (index, character) in text.string.chars().enumerate() {
+        for (index, character) in text.chars().enumerate() {
             let index = index as u16;
             if let Some(glyph) = font.glyphs.get(&character) {
                 let font::CharInfo {
@@ -165,6 +152,25 @@ fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graph
         }
         let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &vertices);
         let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
-        renderer.texts.insert(text.string.clone(), (vec![vertex_buffer.clone()], index_buffer.clone()));
+        Some((vec![vertex_buffer], index_buffer))
+}
+
+fn draw_text(ctx: &mut Context, game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
+    let GameWorld { world, .. } = game_world;
+
+    for (_, (text, pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
+        if let Some(_) = renderer.texts.get(&text.string) {
+            let cmd = graphics::renderer::RenderFontCommand {
+                font: "KenneyFuture".to_string(),
+                text: text.string.clone(),
+                position: pos.0,
+            };
+            renderer.render_font_commands.push(cmd);
+            continue;
+        }
+
+        if let Some(buffers) = create_text_buffer(renderer, ctx, text.string.clone(), "KenneyFuture".to_string()) {
+            renderer.texts.insert(text.string.clone(), buffers);
+        }
     }
 }

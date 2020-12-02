@@ -29,7 +29,7 @@ pub struct RenderFontCommand {
 }
 
 pub enum RenderAssetCommands {
-    LoadFont { text: String },
+    LoadText { text: String, font: String },
 }
 
 pub struct MainRenderer {
