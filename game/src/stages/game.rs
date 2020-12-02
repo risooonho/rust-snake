@@ -81,7 +81,7 @@ impl Stage for GameState {
             self.food_timer.reset();
         }
 
-        self.input = Default::default();
+        self.input.reset();
         self.game_world.events.clear();
         NextStage::Noop
     }

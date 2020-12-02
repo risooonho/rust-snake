@@ -10,6 +10,18 @@ pub struct Input {
     pub go_down: bool,
     pub go_back: bool,
     pub pause: bool,
+    pub width: f32,
+    pub height: f32,
+}
+
+impl Input {
+    pub fn reset(&mut self) {
+        *self = Self {
+            width: self.width,
+            height: self.height,
+            ..Default::default()
+        }
+    }
 }
 
 impl Input {

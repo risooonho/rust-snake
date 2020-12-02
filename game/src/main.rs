@@ -62,7 +62,7 @@ impl EventHandler for Stage {
             }
             _ => {}
         };
-        self.input = Default::default();
+        self.input.reset();
     }
 
     fn draw(&mut self, ctx: &mut Context) {
