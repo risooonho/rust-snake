@@ -13,7 +13,7 @@ use crate::graphics::renderer;
 
 pub struct GameWorld {
     pub world: hecs::World,
-    pub events: SmallVec<[events::Event; 32]>,
+    pub events: Vec<events::Event>,
     pub camera: components::Camera2D,
 }
 
@@ -211,7 +211,7 @@ pub fn head_collision_system(game_world: &mut GameWorld) {
 }
 
 pub fn handle_collision_system(game_world: &mut GameWorld) {
-    let (collsions, rest): (SmallVec<[Event; 32]>, SmallVec<[Event; 32]>) = game_world
+    let (collsions, rest): (Vec<Event>, Vec<Event>) = game_world
         .events
         .iter()
         .cloned()

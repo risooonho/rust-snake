@@ -1,5 +1,4 @@
 use miniquad::{Buffer, BufferType, Context, KeyCode, KeyMods};
-use smallvec::SmallVec;
 
 use crate::components;
 use crate::graphics::{self, font};
@@ -17,7 +16,7 @@ pub struct GameState {
 impl GameState {
     pub fn new(ctx: &mut miniquad::Context) -> Self {
         let mut game_world = GameWorld {
-            events: SmallVec::new(),
+            events: Vec::with_capacity(32),
             camera: components::Camera2D::new(ctx, 20.),
             world: hecs::World::new(),
         };
