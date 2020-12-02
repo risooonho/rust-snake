@@ -61,6 +61,7 @@ impl EventHandler for Stage {
             _ => {}
         };
         self.input.reset();
+        self.renderer.load_assets(ctx);
     }
 
     fn draw(&mut self, ctx: &mut Context) {

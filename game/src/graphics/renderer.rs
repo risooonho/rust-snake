@@ -28,6 +28,7 @@ pub struct RenderFontCommand {
     pub position: glam::Vec2,
 }
 
+#[derive(Debug, Clone)]
 pub enum RenderAssetCommands {
     LoadText { text: String, font: String },
 }
@@ -45,6 +46,67 @@ pub struct MainRenderer {
     pub materials: Materials,
     pub projection: glam::Mat4,
     pub view: glam::Mat4,
+}
+
+fn create_text_buffer(renderer: &mut graphics::MainRenderer, ctx: &mut Context, text: String, font: &String) -> Option<(Vec<miniquad::Buffer>, miniquad::Buffer)> {
+        let font = match renderer.fonts.get(font) {
+            Some(f) => f,
+            _ => return None,
+        };
+        use crate::shaders::Vertex;
+        use glam::Vec2;
+        let mut vertices: Vec<Vertex> = Vec::with_capacity(text.chars().count() * 4);
+        let mut indices: Vec<u16> = Vec::with_capacity(text.chars().count() * 6);
+        let (width, height) = font.image_dimensions();
+        let mut offset = 0.0f32;
+        let scale = 0.025f32;
+        for (index, character) in text.chars().enumerate() {
+            let index = index as u16;
+            if let Some(glyph) = font.glyphs.get(&character) {
+                let font::CharInfo {
+                    glyph_x,
+                    glyph_y,
+                    glyph_h,
+                    glyph_w,
+                    ..
+                } = *glyph;
+                let w = (glyph_w as f32 / 2.) * scale;
+                let h = (glyph_h as f32 / 2.) * scale;
+                let texture_x = glyph_x as f32 / width as f32;
+                let texture_y = glyph_y as f32 / height as f32;
+                let texture_w = glyph_w as f32 / width as f32;
+                let texture_h = glyph_h as f32 / height as f32;
+
+                vertices.push(Vertex {
+                    pos: Vec2::new(offset - w, -h),
+                    uv: Vec2::new(texture_x, texture_y + texture_h),
+                });
+                vertices.push(Vertex {
+                    pos: Vec2::new(offset + w, -h),
+                    uv: Vec2::new(texture_x + texture_w, texture_y + texture_h),
+                });
+                vertices.push(Vertex {
+                    pos: Vec2::new(offset + w, h),
+                    uv: Vec2::new(texture_x + texture_w, texture_y),
+                });
+                vertices.push(Vertex {
+                    pos: Vec2::new(offset - w, h),
+                    uv: Vec2::new(texture_x, texture_y),
+                });
+
+                indices.push(0 + (index * 4));
+                indices.push(1 + (index * 4));
+                indices.push(2 + (index * 4));
+                indices.push(0 + (index * 4));
+                indices.push(2 + (index * 4));
+                indices.push(3 + (index * 4));
+
+                offset += glyph.advance * scale;
+            }
+        }
+        let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &vertices);
+        let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
+        Some((vec![vertex_buffer], index_buffer))
 }
 
 impl MainRenderer {
@@ -128,6 +190,21 @@ impl MainRenderer {
     pub fn update_view(&mut self, camera: &components::Camera2D) {
         self.projection = camera.projection;
         self.view = camera.view;
+    }
+
+    pub fn load_assets(&mut self, ctx: &mut Context) {
+        let commands: Vec<RenderAssetCommands> = self.asset_commands.drain(..).collect();
+        commands.iter().for_each(|cmd| match cmd {
+            RenderAssetCommands::LoadText { text, font } => {
+                if !self.texts.contains_key(text) {
+                    let buffer = create_text_buffer(self, ctx, text.clone(), &font);
+                    if let Some(buffers) = buffer
+                    {
+                        self.texts.insert(text.clone(), buffers);
+                    }
+                }
+            }
+        });
     }
 
     pub fn draw(&mut self, ctx: &mut Context) {
