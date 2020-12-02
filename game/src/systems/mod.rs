@@ -3,7 +3,6 @@ use std::collections::HashMap;
 
 use glam::Vec2;
 use quad_rand as qrand;
-use smallvec::SmallVec;
 
 use crate::assets;
 use crate::components;
@@ -127,7 +126,7 @@ pub fn despawn_food_system(game_world: &mut GameWorld) {
 
 pub fn trigger_tail_spawn(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
-    let mut events_to_push: SmallVec<[Event; 4]> = SmallVec::new();
+    let mut events_to_push: Vec<Event> = Vec::new();
     for event in events.iter() {
         match event {
             Event::SnakeEatFood { .. } => {

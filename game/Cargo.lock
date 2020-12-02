@@ -20,9 +20,9 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "cc"
-version = "1.0.63"
+version = "1.0.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad9c6140b5a2c7db40ea56eb1821245e5362b44385c05b76288b1a599934ac87"
+checksum = "95752358c8f7552394baf48cd82695b345628ad3f170d607de3ca03b8dacca15"
 
 [[package]]
 name = "fontdue"
@@ -43,7 +43,6 @@ dependencies = [
  "hecs",
  "miniquad",
  "quad-rand",
- "smallvec",
 ]
 
 [[package]]
@@ -169,12 +168,6 @@ checksum = "84033aa9c68bf68fe73bc184c10515e7aa30978b802567c5045d4155f484210a"
 dependencies = [
  "winapi",
 ]
-
-[[package]]
-name = "smallvec"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7acad6f34eb9e8a259d3283d1e8c1d34d7415943d4895f65cc73813c7396fc85"
 
 [[package]]
 name = "ttf-parser"
