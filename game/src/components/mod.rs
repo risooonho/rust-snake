@@ -127,14 +127,6 @@ impl Camera2D {
                 );
         self.projection = projection;
     }
-
-    pub fn uniform(&self) -> crate::shaders::sprite::VertexUniforms {
-        crate::shaders::sprite::VertexUniforms {
-            projection: self.projection,
-            view: self.view,
-            model: Mat4::identity(),
-        }
-    }
 }
 pub struct Snake;
 

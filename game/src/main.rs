@@ -1,5 +1,4 @@
 use miniquad::*;
-use smallvec::SmallVec;
 use stages::GameState;
 
 
@@ -11,12 +10,6 @@ mod shaders;
 mod stages;
 mod systems;
 mod utils;
-
-pub struct GameWorld {
-    pub world: hecs::World,
-    pub events: SmallVec<[events::Event; 32]>,
-    pub camera: components::Camera2D,
-}
 
 struct Stage {
     stages: stages::StageStack,

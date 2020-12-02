@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::components;
 
 #[derive(Debug, Clone, Copy)]
