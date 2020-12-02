@@ -1,3 +1,4 @@
+use components::Input;
 use miniquad::{Buffer, BufferType, Context, KeyCode, KeyMods};
 
 use crate::components;
@@ -51,7 +52,7 @@ impl Stage for GameState {
         self.game_world.camera.resize(ctx);
     }
 
-    fn update(&mut self, _ctx: &mut Context) -> NextStage {
+    fn update(&mut self, input: &Input, _ctx: &mut Context) -> NextStage {
         if self.input.pause {
             self.input.pause = false;
             return NextStage::Push(Box::new(Paused::new()));

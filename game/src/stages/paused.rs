@@ -1,4 +1,4 @@
-use crate::stages::{Stage, NextStage};
+use crate::{components::Input, stages::{Stage, NextStage}};
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct Paused {
@@ -12,7 +12,7 @@ impl Paused {
 }
 
 impl Stage for Paused {
-    fn update(&mut self, _: &mut miniquad::Context) -> NextStage {
+    fn update(&mut self, input: &Input, _: &mut miniquad::Context) -> NextStage {
         if self.go_back {
             return NextStage::Pop;
         }
