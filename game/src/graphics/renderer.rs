@@ -28,12 +28,17 @@ pub struct RenderFontCommand {
     pub position: glam::Vec2,
 }
 
+pub enum RenderAssetCommands {
+    LoadFont { text: String },
+}
+
 pub struct MainRenderer {
     pub debug_font_bindings: miniquad::Bindings,
     pub shader_pipeline: miniquad::Pipeline,
     // TODO(jhurstwright): These should be consolidated into a UnionEnum
     pub render_font_commands: Vec<RenderFontCommand>,
     pub render_commands: Vec<SpriteRenderCommand>,
+    pub asset_commands: Vec<RenderAssetCommands>,
     pub fonts: HashMap<String, font::Font>,
     pub texts: HashMap<String, (Vec<miniquad::Buffer>, miniquad::Buffer)>,
     pub meshes: Meshes,
@@ -106,6 +111,7 @@ impl MainRenderer {
         fonts.insert(example_font.name.clone(), example_font);
 
         Self {
+            asset_commands: Vec::with_capacity(32),
             debug_font_bindings: bindings,
             fonts,
             materials,

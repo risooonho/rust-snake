@@ -14,18 +14,20 @@ mod utils;
 struct Stage {
     stages: stages::StageStack,
     renderer: graphics::MainRenderer,
+    input: components::Input,
 }
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
         let renderer = graphics::MainRenderer::new(ctx);
+        let input = Default::default();
         let mut stages = stages::new_stage_stack(16);
         let game_stage = Box::new(GameState::new(ctx));
+
         stages.push(game_stage as Box<dyn stages::Stage>);
 
 
-
-        Self { stages, renderer }
+        Self { stages, renderer, input }
     }
 }
 
