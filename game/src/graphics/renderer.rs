@@ -1,5 +1,4 @@
 use miniquad::*;
-use smallvec::SmallVec;
 // TODO(jhurstwright): Replace with no_std hashmap
 use std::collections::HashMap;
 
@@ -10,7 +9,7 @@ use crate::graphics::font;
 use crate::shaders;
 use crate::utils;
 
-pub type RenderCommands = SmallVec<[SpriteRenderCommand; 64]>;
+pub type RenderCommands = Vec<SpriteRenderCommand>;
 pub type Materials = HashMap<assets::AssetType, Vec<Texture>>;
 pub type Meshes = HashMap<assets::AssetType, (Vec<miniquad::Buffer>, miniquad::Buffer)>;
 
@@ -33,8 +32,8 @@ pub struct MainRenderer {
     pub debug_font_bindings: miniquad::Bindings,
     pub shader_pipeline: miniquad::Pipeline,
     // TODO(jhurstwright): These should be consolidated into a UnionEnum
-    pub render_font_commands: SmallVec<[RenderFontCommand; 32]>,
-    pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
+    pub render_font_commands: Vec<RenderFontCommand>,
+    pub render_commands: Vec<SpriteRenderCommand>,
     pub fonts: HashMap<String, font::Font>,
     pub texts: HashMap<String, (Vec<miniquad::Buffer>, miniquad::Buffer)>,
     pub meshes: Meshes,
@@ -113,8 +112,8 @@ impl MainRenderer {
             meshes,
             texts: HashMap::new(),
             projection: glam::Mat4::identity(),
-            render_font_commands: SmallVec::new(),
-            render_commands: SmallVec::new(),
+            render_font_commands: Vec::with_capacity(64),
+            render_commands: Vec::with_capacity(64),
             shader_pipeline,
             view: glam::Mat4::identity(),
         }
