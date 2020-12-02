@@ -1,5 +1,5 @@
 use components::Input;
-use miniquad::{Buffer, BufferType, Context, KeyCode, KeyMods};
+use miniquad::{Buffer, BufferType, Context};
 
 use crate::components;
 use crate::graphics::{self, font};
@@ -48,12 +48,12 @@ impl Stage for GameState {
         self.food_timer.paused();
     }
 
-    fn resize_event(&mut self, ctx: &mut Context, _width: f32, _height: f32) {
-        self.game_world.camera.resize(ctx);
-    }
-
     fn update(&mut self, input: &Input, _ctx: &mut Context) -> NextStage {
         self.input = input.clone();
+        if self.input.resized {
+            let Input{ width, height, .. } = self.input;
+            self.game_world.camera.resize(width, height);
+        }
         if self.input.pause {
             self.input.pause = false;
             return NextStage::Push(Box::new(Paused::new()));

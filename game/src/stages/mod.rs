@@ -1,4 +1,4 @@
-use miniquad::{Context, KeyCode, KeyMods, MouseButton, TouchPhase};
+use miniquad::Context;
 pub mod game;
 pub mod paused;
 
@@ -23,5 +23,4 @@ pub trait Stage {
     fn exit(&mut self) {}
     fn update(&mut self, input: &Input, _ctx: &mut Context) -> NextStage;
     fn draw(&mut self, _ctx: &mut Context, _renderer: &mut graphics::MainRenderer) {}
-    fn resize_event(&mut self, _ctx: &mut Context, _width: f32, _height: f32) {}
 }

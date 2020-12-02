@@ -32,12 +32,10 @@ impl Stage {
 }
 
 impl EventHandler for Stage {
-    fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            None => return,
-        };
-        stage.resize_event(ctx, width, height)
+    fn resize_event(&mut self, _ctx: &mut Context, width: f32, height: f32) {
+        self.input.width = width;
+        self.input.height = height;
+        self.input.resized = true;
     }
 
     fn update(&mut self, ctx: &mut Context) {

@@ -12,6 +12,7 @@ pub struct Input {
     pub pause: bool,
     pub width: f32,
     pub height: f32,
+    pub resized: bool,
 }
 
 impl Input {
@@ -126,8 +127,7 @@ impl Camera2D {
         }
     }
 
-    pub fn resize(&mut self, ctx: &mut Context) {
-        let (width, height) = ctx.screen_size();
+    pub fn resize(&mut self, width: f32, height: f32) {
         let aspect = width / height;
         #[rustfmt::skip]
         let projection = Mat4::orthographic_rh_gl(
