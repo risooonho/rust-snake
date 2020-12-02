@@ -62,6 +62,7 @@ impl EventHandler for Stage {
             }
             _ => {}
         };
+        self.input = Default::default();
     }
 
     fn draw(&mut self, ctx: &mut Context) {
@@ -84,6 +85,30 @@ impl EventHandler for Stage {
             _ => return,
         };
         stage.key_down_event(ctx, keycode, keymods, repeat);
+
+        if repeat {
+            return;
+        }
+
+        match keycode {
+            KeyCode::Left | KeyCode::A => {
+                self.input.go_left = true;
+            }
+            KeyCode::Right | KeyCode::D => {
+                self.input.go_right = true;
+            }
+            KeyCode::Up | KeyCode::W => {
+                self.input.go_up = true;
+            }
+            KeyCode::Down | KeyCode::S => {
+                self.input.go_down = true;
+            }
+            KeyCode::Escape => {
+                self.input.pause = true;
+                self.input.go_back = true;
+            }
+            _ => {}
+        }
     }
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32) {
@@ -132,6 +157,7 @@ impl EventHandler for Stage {
             _ => return,
         };
         stage.key_up_event(ctx, keycode, keymods);
+
     }
 
     fn raw_mouse_motion(&mut self, ctx: &mut Context, dx: f32, dy: f32) {

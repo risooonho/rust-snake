@@ -53,6 +53,7 @@ impl Stage for GameState {
     }
 
     fn update(&mut self, input: &Input, _ctx: &mut Context) -> NextStage {
+        self.input = input.clone();
         if self.input.pause {
             self.input.pause = false;
             return NextStage::Push(Box::new(Paused::new()));
@@ -83,37 +84,6 @@ impl Stage for GameState {
         self.input = Default::default();
         self.game_world.events.clear();
         NextStage::Noop
-    }
-
-    fn key_down_event(
-        &mut self,
-        _ctx: &mut Context,
-        keycode: KeyCode,
-        _keymods: KeyMods,
-        repeat: bool,
-    ) {
-        if repeat {
-            return;
-        }
-
-        match keycode {
-            KeyCode::Left | KeyCode::A => {
-                self.input.go_left = true;
-            }
-            KeyCode::Right | KeyCode::D => {
-                self.input.go_right = true;
-            }
-            KeyCode::Up | KeyCode::W => {
-                self.input.go_up = true;
-            }
-            KeyCode::Down | KeyCode::S => {
-                self.input.go_down = true;
-            }
-            KeyCode::Escape => {
-                self.input.pause = true;
-            }
-            _ => {}
-        }
     }
 
     fn draw(&mut self, ctx: &mut Context, renderer: &mut graphics::MainRenderer) {

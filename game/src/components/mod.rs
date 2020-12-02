@@ -2,12 +2,13 @@ use core::str::FromStr;
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::{date, Context};
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct Input {
     pub go_left: bool,
     pub go_right: bool,
     pub go_up: bool,
     pub go_down: bool,
+    pub go_back: bool,
     pub pause: bool,
 }
 
