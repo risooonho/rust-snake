@@ -69,11 +69,9 @@ impl EventHandler for Stage {
     }
 
     fn draw(&mut self, ctx: &mut Context) {
-        let stage = match self.stages.last_mut() {
-            Some(s) => s,
-            _ => return,
-        };
-        stage.draw(ctx, &mut self.renderer);
+        for stage in self.stages.iter_mut() {
+            stage.draw(ctx, &mut self.renderer);
+        }
         self.renderer.draw(ctx);
     }
 
