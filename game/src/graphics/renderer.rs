@@ -36,6 +36,7 @@ pub struct MainRenderer {
     pub render_font_commands: SmallVec<[RenderFontCommand; 32]>,
     pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
     pub fonts: HashMap<String, font::Font>,
+    pub texts: HashMap<String, (Vec<miniquad::Buffer>, miniquad::Buffer)>,
     pub font_mesh: Option<(Vec<miniquad::Buffer>, miniquad::Buffer)>,
     pub meshes: Meshes,
     pub materials: Materials,
@@ -112,6 +113,7 @@ impl MainRenderer {
             fonts,
             materials,
             meshes,
+            texts: HashMap::new(),
             projection: glam::Mat4::identity(),
             render_font_commands: SmallVec::new(),
             render_commands: SmallVec::new(),
@@ -185,7 +187,8 @@ impl MainRenderer {
         // }
 
         // Render the Font
-        for RenderFontCommand { text, .. } in self.render_font_commands.iter() {
+        for cmd in self.render_font_commands.iter() {
+            let RenderFontCommand { text, .. } = cmd;
             if let Some((v, i)) = &self.font_mesh {
                 let model = glam::Mat4::from_rotation_translation(
                     glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
