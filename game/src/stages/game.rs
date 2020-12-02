@@ -9,16 +9,15 @@ use crate::systems::{self, GameWorld};
 pub struct GameState {
     direction: components::Direction,
     game_world: GameWorld,
-    input: components::Input,
     move_timer: components::Timer,
     food_timer: components::Timer,
 }
 
 impl GameState {
-    pub fn new(ctx: &mut miniquad::Context) -> Self {
+    pub fn new(input: &components::Input) -> Self {
         let mut game_world = GameWorld {
             events: Vec::with_capacity(32),
-            camera: components::Camera2D::new(ctx, 20.),
+            camera: components::Camera2D::new(input, 20.),
             world: hecs::World::new(),
         };
         systems::create_snake_system(&mut game_world);
@@ -31,7 +30,6 @@ impl GameState {
             direction: components::Direction::Up,
             game_world,
             move_timer: components::Timer::new(0.25),
-            input: components::Input::default(),
             food_timer: components::Timer::new(1.5),
         }
     }
@@ -49,17 +47,16 @@ impl Stage for GameState {
     }
 
     fn update(&mut self, input: &Input, _renderer: &mut graphics::MainRenderer) -> NextStage {
-        self.input = input.clone();
-        if self.input.resized {
-            let Input{ width, height, .. } = self.input;
+        let input = input.clone();
+        if input.resized {
+            let Input{ width, height, .. } = input;
             self.game_world.camera.resize(width, height);
         }
-        if self.input.pause {
-            self.input.pause = false;
+        if input.pause {
             return NextStage::Push(Box::new(Paused::new()));
         }
-        self.direction.update(&self.input);
-        systems::update_input(&mut self.game_world, &self.input);
+        self.direction.update(&input);
+        systems::update_input(&mut self.game_world, &input);
         if self.move_timer.finished() {
             crate::systems::update_velocity_direction(&mut self.game_world);
             systems::tail_movement_system(&mut self.game_world);
@@ -81,7 +78,6 @@ impl Stage for GameState {
             self.food_timer.reset();
         }
 
-        self.input.reset();
         self.game_world.events.clear();
         NextStage::Noop
     }

@@ -1,6 +1,8 @@
 use core::str::FromStr;
 use glam::{Mat4, Quat, Vec2, Vec3};
-use miniquad::{date, Context};
+use miniquad::date;
+
+use crate::components;
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Input {
@@ -113,8 +115,8 @@ pub struct Camera2D {
 }
 
 impl Camera2D {
-    pub fn new(ctx: &mut Context, scale: f32) -> Camera2D {
-        let (width, height) = ctx.screen_size();
+    pub fn new(input: &components::Input, scale: f32) -> Camera2D {
+        let components::Input{ width, height, .. } = input;
         let aspect = width / height;
         let projection =
             Mat4::orthographic_rh_gl(-aspect * scale, aspect * scale, -scale, scale, -1., 1.0);

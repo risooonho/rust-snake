@@ -17,7 +17,6 @@ impl Paused {
 
 impl Stage for Paused {
     fn update(&mut self, input: &Input, _renderer: &mut graphics::MainRenderer) -> NextStage {
-        println!("{:?}", input);
         if input.go_back {
             return NextStage::Pop;
         }
