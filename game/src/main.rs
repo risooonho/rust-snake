@@ -43,7 +43,7 @@ impl EventHandler for Stage {
             Some(s) => s,
             _ => return,
         };
-        let next_stage = stage.update(&self.input, ctx);
+        let next_stage = stage.update(&self.input, &mut self.renderer);
         match next_stage {
             stages::NextStage::Push(mut new_stage) => {
                 stage.exit();

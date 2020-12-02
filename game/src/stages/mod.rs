@@ -21,6 +21,6 @@ pub enum NextStage {
 pub trait Stage {
     fn enter(&mut self) {}
     fn exit(&mut self) {}
-    fn update(&mut self, input: &Input, _ctx: &mut Context) -> NextStage;
+    fn update(&mut self, input: &Input, _renderer: &mut graphics::MainRenderer) -> NextStage;
     fn draw(&mut self, _ctx: &mut Context, _renderer: &mut graphics::MainRenderer) {}
 }

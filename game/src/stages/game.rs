@@ -48,7 +48,7 @@ impl Stage for GameState {
         self.food_timer.paused();
     }
 
-    fn update(&mut self, input: &Input, _ctx: &mut Context) -> NextStage {
+    fn update(&mut self, input: &Input, _renderer: &mut graphics::MainRenderer) -> NextStage {
         self.input = input.clone();
         if self.input.resized {
             let Input{ width, height, .. } = self.input;
