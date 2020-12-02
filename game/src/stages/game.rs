@@ -1,7 +1,7 @@
 use components::Input;
 use miniquad::Context;
 
-use crate::{graphics::renderer::RenderAssetCommands, components};
+use crate::components;
 use crate::graphics::{self};
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
@@ -90,24 +90,6 @@ impl Stage for GameState {
         renderer.update_view(&self.game_world.camera);
         systems::gather_render_cmds(&mut self.game_world, &mut renderer.render_commands);
         systems::debug_render_cmds(&mut self.game_world, &mut renderer.render_commands);
-        draw_text(&mut self.game_world, renderer);
-    }
-}
-
-fn draw_text(game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
-    let GameWorld { world, .. } = game_world;
-
-    for (_, (text, pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
-        if let Some(_) = renderer.texts.get(&text.string) {
-            let cmd = graphics::renderer::RenderFontCommand {
-                font: "KenneyFuture".to_string(),
-                text: text.string.clone(),
-                position: pos.0,
-            };
-            renderer.render_font_commands.push(cmd);
-            continue;
-        }
-
-        renderer.asset_commands.push(RenderAssetCommands::LoadText { text: text.string.clone(), font: "KenneyFuture".to_string()});
+        systems::draw_text(&mut self.game_world, renderer);
     }
 }

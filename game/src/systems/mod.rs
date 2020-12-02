@@ -4,18 +4,18 @@ use std::collections::HashMap;
 use glam::Vec2;
 use quad_rand as qrand;
 
-use crate::assets;
 use crate::components;
 use crate::events;
 use crate::events::Event;
 use crate::graphics::renderer;
+use crate::assets;
+use crate::graphics::{self, renderer::RenderAssetCommands};
 
 pub struct GameWorld {
     pub world: hecs::World,
     pub events: Vec<events::Event>,
     pub camera: components::Camera2D,
 }
-
 
 pub fn create_snake_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
@@ -210,14 +210,15 @@ pub fn head_collision_system(game_world: &mut GameWorld) {
 }
 
 pub fn handle_collision_system(game_world: &mut GameWorld) {
-    let (collsions, rest): (Vec<Event>, Vec<Event>) = game_world
-        .events
-        .iter()
-        .cloned()
-        .partition(|event| match event {
-            Event::Collision { .. } => true,
-            _ => false,
-        });
+    let (collsions, rest): (Vec<Event>, Vec<Event>) =
+        game_world
+            .events
+            .iter()
+            .cloned()
+            .partition(|event| match event {
+                Event::Collision { .. } => true,
+                _ => false,
+            });
     game_world.events = rest;
     collsions.iter().for_each(|collision| match collision {
         Event::Collision {
@@ -285,6 +286,27 @@ pub fn debug_render_cmds(game_world: &mut GameWorld, cmds: &mut renderer::Render
             position: vel + pos.0,
             num_of_elements: 9,
             angle,
+        });
+    }
+}
+
+pub fn draw_text(game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
+    let GameWorld { world, .. } = game_world;
+
+    for (_, (text, pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
+        if let Some(_) = renderer.texts.get(&text.string) {
+            let cmd = graphics::renderer::RenderFontCommand {
+                font: "KenneyFuture".to_string(),
+                text: text.string.clone(),
+                position: pos.0,
+            };
+            renderer.render_font_commands.push(cmd);
+            continue;
+        }
+
+        renderer.asset_commands.push(RenderAssetCommands::LoadText {
+            text: text.string.clone(),
+            font: "KenneyFuture".to_string(),
         });
     }
 }
