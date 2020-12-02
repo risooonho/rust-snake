@@ -48,15 +48,15 @@ impl EventHandler for Stage {
         let next_stage = stage.update(&self.input, ctx);
         match next_stage {
             stages::NextStage::Push(mut new_stage) => {
-                stage.exit(ctx);
-                new_stage.enter(ctx);
+                stage.exit();
+                new_stage.enter();
                 self.stages.push(new_stage);
             }
             stages::NextStage::Pop => {
-                stage.exit(ctx);
+                stage.exit();
                 self.stages.pop().expect("Popped an Empty StageStack");
                 match self.stages.last_mut() {
-                    Some(s) => s.enter(ctx),
+                    Some(s) => s.enter(),
                     _ => {}
                 };
             }

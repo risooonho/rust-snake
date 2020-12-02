@@ -38,12 +38,12 @@ impl GameState {
 }
 
 impl Stage for GameState {
-    fn enter(&mut self, _ctx: &mut Context) {
+    fn enter(&mut self) {
         self.move_timer.resume();
         self.food_timer.resume();
     }
 
-    fn exit(&mut self, _ctx: &mut Context) {
+    fn exit(&mut self) {
         self.move_timer.paused();
         self.food_timer.paused();
     }
