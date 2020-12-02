@@ -37,7 +37,6 @@ pub struct MainRenderer {
     pub render_commands: SmallVec<[SpriteRenderCommand; 64]>,
     pub fonts: HashMap<String, font::Font>,
     pub texts: HashMap<String, (Vec<miniquad::Buffer>, miniquad::Buffer)>,
-    pub font_mesh: Option<(Vec<miniquad::Buffer>, miniquad::Buffer)>,
     pub meshes: Meshes,
     pub materials: Materials,
     pub projection: glam::Mat4,
@@ -109,7 +108,6 @@ impl MainRenderer {
 
         Self {
             debug_font_bindings: bindings,
-            font_mesh: None,
             fonts,
             materials,
             meshes,
@@ -189,7 +187,7 @@ impl MainRenderer {
         // Render the Font
         for cmd in self.render_font_commands.iter() {
             let RenderFontCommand { text, .. } = cmd;
-            if let Some((v, i)) = &self.font_mesh {
+            if let Some((v, i)) = &self.texts.get(text) {
                 let model = glam::Mat4::from_rotation_translation(
                     glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
                     glam::Vec3::new(0., 0., 0.),
