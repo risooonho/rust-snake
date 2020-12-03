@@ -12,6 +12,7 @@ pub struct GameState {
     game_world: GameWorld,
     move_timer: components::Timer,
     food_timer: components::Timer,
+    score: i32,
 }
 
 
@@ -23,10 +24,11 @@ impl GameState {
             world: hecs::World::new(),
         };
         systems::create_snake_system(&mut game_world);
-        let (load_cmd, text_component) = components::Text::create_text("Test ABC");
+        let (load_cmd, text_component) = components::Text::create_text(format!("Score:  {}", 0).as_str());
 
         game_world.world.spawn((
-            components::Position(glam::Vec2::new(-10., -4.)),
+            components::Score,
+            components::Position(glam::Vec2::new(-24., 18.)),
             text_component,
         ));
         asset_cmds.push(load_cmd);
@@ -36,6 +38,7 @@ impl GameState {
             game_world,
             move_timer: components::Timer::new(0.25),
             food_timer: components::Timer::new(1.5),
+            score: 0,
         }
     }
 }
@@ -51,7 +54,7 @@ impl Stage for GameState {
         self.food_timer.paused();
     }
 
-    fn update(&mut self, input: &Input, _renderer: &mut graphics::MainRenderer) -> NextStage {
+    fn update(&mut self, input: &Input, renderer: &mut graphics::MainRenderer) -> NextStage {
         let input = input.clone();
         if input.resized {
             let Input{ width, height, .. } = input;
@@ -78,6 +81,7 @@ impl Stage for GameState {
         }
 
         systems::despawn_food_system(&mut self.game_world);
+        systems::update_score_system(&mut self.game_world, &mut self.score, &mut renderer.asset_commands);
         if systems::game_over_system(&mut self.game_world) {
             self.move_timer.reset();
             self.food_timer.reset();

@@ -110,6 +110,30 @@ pub fn tail_movement_system(game_world: &mut GameWorld) {
     }
 }
 
+pub fn update_score_system(game_world: &mut GameWorld, score: &mut i32, cmds: &mut Vec<renderer::RenderAssetCommands>) {
+    let GameWorld { world, events, .. } = game_world;
+    for event in events {
+        match event {
+            Event::SnakeEatFood { .. } => {
+                *score += 1;
+                for (_, (text, _score)) in &mut world.query::<(&mut components::Text, &components::Score)>() {
+                    let cmd = text.update_text(format!("Score:  {}", score));
+                    cmds.push(cmd);
+                }
+            }
+            Event::GameOver => {
+                *score = 0;
+                for (_, (text, _score)) in &mut world.query::<(&mut components::Text, &components::Score)>() {
+                    let cmd = text.update_text(format!("Score:  {}", score));
+                    cmds.push(cmd);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+
 pub fn despawn_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
     for event in events {

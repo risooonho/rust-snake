@@ -144,7 +144,7 @@ impl Camera2D {
     }
 }
 pub struct Snake;
-
+pub struct Score;
 pub struct Food;
 
 pub struct Tail {
@@ -263,4 +263,13 @@ impl Text {
         }
     }
 
+    pub fn update_text(&mut self, new_text: String) -> renderer::RenderAssetCommands {
+        let out = renderer::RenderAssetCommands::UpdateText {
+            text: self.string.clone(),
+            font: self.font.clone(),
+            new_text: new_text.clone(),
+        };
+        self.string = new_text;
+        out
+    }
 }
