@@ -9,7 +9,7 @@ use crate::events;
 use crate::events::Event;
 use crate::graphics::renderer;
 use crate::assets;
-use crate::graphics::{self, renderer::RenderAssetCommands};
+use crate::graphics;
 
 pub struct GameWorld {
     pub world: hecs::World,
@@ -294,19 +294,14 @@ pub fn draw_text(game_world: &mut GameWorld, renderer: &mut graphics::MainRender
     let GameWorld { world, .. } = game_world;
 
     for (_, (text, pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
-        if let Some(_) = renderer.texts.get(&text.string) {
+        if let Some(_) = renderer.texts.get(&text.text()) {
             let cmd = graphics::renderer::RenderFontCommand {
                 font: "KenneyFuture".to_string(),
-                text: text.string.clone(),
+                text: text.text(),
                 position: pos.0,
             };
             renderer.render_font_commands.push(cmd);
             continue;
         }
-
-        renderer.asset_commands.push(RenderAssetCommands::LoadText {
-            text: text.string.clone(),
-            font: "KenneyFuture".to_string(),
-        });
     }
 }

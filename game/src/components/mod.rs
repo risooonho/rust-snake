@@ -2,7 +2,7 @@ use core::str::FromStr;
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::date;
 
-use crate::components;
+use crate::{components, graphics::renderer};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Input {
@@ -234,13 +234,33 @@ impl Default for Direction {
 pub struct HeadDirection(pub Direction);
 
 pub struct Text {
-    pub string: String,
+    string: String,
+    font: String,
 }
 
 impl Text {
-    pub fn new(str: &str) -> Text {
+    fn new(str: &str) -> Text {
         Text {
             string: String::from_str(str).expect("Failed to Create Text"),
+            font: "KenneyFuture".to_string()
         }
     }
+
+    pub fn create_text<'a>(str: &str) -> (renderer::RenderAssetCommands, components::Text) {
+        let text = Text::new(str);
+        let cmd = text.load_command();
+        (cmd, text)
+    }
+
+    pub fn text(&self) -> String {
+        self.string.clone()
+    }
+
+    pub fn load_command(&self) -> renderer::RenderAssetCommands {
+        renderer::RenderAssetCommands::LoadText {
+            text: self.string.clone(),
+            font: self.font.clone(),
+        }
+    }
+
 }

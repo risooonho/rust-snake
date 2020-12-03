@@ -1,4 +1,5 @@
 use components::Input;
+use graphics::renderer;
 use miniquad::Context;
 
 use crate::components;
@@ -13,18 +14,22 @@ pub struct GameState {
     food_timer: components::Timer,
 }
 
+
 impl GameState {
-    pub fn new(input: &components::Input) -> Self {
+    pub fn new(input: &components::Input, asset_cmds: &mut Vec<renderer::RenderAssetCommands>) -> Self {
         let mut game_world = GameWorld {
             events: Vec::with_capacity(32),
             camera: components::Camera2D::new(input, 20.),
             world: hecs::World::new(),
         };
         systems::create_snake_system(&mut game_world);
+        let (load_cmd, text_component) = components::Text::create_text("Test ABC");
+
         game_world.world.spawn((
             components::Position(glam::Vec2::new(-10., -4.)),
-            components::Text::new("Test ABC"),
+            text_component,
         ));
+        asset_cmds.push(load_cmd);
 
         GameState {
             direction: components::Direction::Up,

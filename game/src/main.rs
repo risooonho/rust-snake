@@ -19,14 +19,14 @@ struct Stage {
 
 impl Stage {
     pub fn new(ctx: &mut Context) -> Self {
-        let renderer = graphics::MainRenderer::new(ctx);
+        let mut renderer = graphics::MainRenderer::new(ctx);
 
         let (width, height) = ctx.screen_size();
         let mut input = components::Input::default();
         input.width = width;
         input.height = height;
         let mut stages = stages::new_stage_stack(16);
-        let game_stage = Box::new(GameState::new(&input));
+        let game_stage = Box::new(GameState::new(&input, &mut renderer.asset_commands));
 
         stages.push(game_stage as Box<dyn stages::Stage>);
 
