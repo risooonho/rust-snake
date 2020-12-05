@@ -2,7 +2,6 @@ use miniquad::*;
 // TODO(jhurstwright): Replace with no_std hashmap
 use std::collections::HashMap;
 
-use crate::assets;
 use crate::components;
 use crate::graphics;
 use crate::graphics::font;
@@ -10,12 +9,27 @@ use crate::shaders;
 use crate::utils;
 
 pub type RenderCommands = Vec<SpriteRenderCommand>;
-pub type Materials = HashMap<assets::AssetType, Vec<Texture>>;
-pub type Meshes = HashMap<assets::AssetType, (Vec<miniquad::Buffer>, miniquad::Buffer)>;
+pub type Materials = HashMap<AssetIdentity, Vec<Texture>>;
+pub type Meshes = HashMap<AssetIdentity, (Vec<miniquad::Buffer>, miniquad::Buffer)>;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct AssetIdentity(pub String);
+
+impl From<String> for AssetIdentity {
+    fn from(v: String) -> Self {
+        Self(v)
+    }
+}
+
+impl From<&'_ str> for AssetIdentity {
+    fn from(v: &'_ str) -> Self {
+        Self(v.to_owned())
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct SpriteRenderCommand {
-    pub binding: assets::AssetType,
+    pub binding: AssetIdentity,
     pub position: glam::Vec2,
     pub angle: f32,
     pub num_of_elements: i32,
@@ -158,20 +172,20 @@ impl MainRenderer {
 
         let mut fonts = HashMap::new();
 
-        materials.insert(assets::AssetType::Food, vec![food_texture]);
-        materials.insert(assets::AssetType::Tail, vec![tail_texture]);
-        materials.insert(assets::AssetType::Snake, vec![snake_texture]);
-        materials.insert(assets::AssetType::Arrow, vec![arrow_texture]);
+        materials.insert("Food".into(), vec![food_texture]);
+        materials.insert("Tail".into(), vec![tail_texture]);
+        materials.insert("Snake".into(), vec![snake_texture]);
+        materials.insert("Arrow".into(), vec![arrow_texture]);
 
         let snake_mesh = crate::utils::make_square(ctx, 1.);
         let food_mesh = crate::utils::make_square(ctx, 0.8);
         let tail_mesh = crate::utils::make_square(ctx, 0.8);
         let arrow_mesh = crate::utils::make_arrow(ctx);
 
-        meshes.insert(assets::AssetType::Food, (vec![food_mesh.0], food_mesh.1));
-        meshes.insert(assets::AssetType::Tail, (vec![tail_mesh.0], tail_mesh.1));
-        meshes.insert(assets::AssetType::Snake, (vec![snake_mesh.0], snake_mesh.1));
-        meshes.insert(assets::AssetType::Arrow, (vec![arrow_mesh.0], arrow_mesh.1));
+        meshes.insert("Food".into(), (vec![food_mesh.0], food_mesh.1));
+        meshes.insert("Tail".into(), (vec![tail_mesh.0], tail_mesh.1));
+        meshes.insert("Snake".into(), (vec![snake_mesh.0], snake_mesh.1));
+        meshes.insert("Arrow".into(), (vec![arrow_mesh.0], arrow_mesh.1));
 
         let mut example_font = font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
         for char in font::ascii_character_list() {

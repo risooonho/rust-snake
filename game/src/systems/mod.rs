@@ -4,12 +4,12 @@ use std::collections::HashMap;
 use glam::Vec2;
 use quad_rand as qrand;
 
+use crate::assets;
 use crate::components;
 use crate::events;
 use crate::events::Event;
-use crate::graphics::renderer;
-use crate::assets;
 use crate::graphics;
+use crate::graphics::renderer;
 
 pub struct GameWorld {
     pub world: hecs::World,
@@ -110,20 +110,28 @@ pub fn tail_movement_system(game_world: &mut GameWorld) {
     }
 }
 
-pub fn update_score_system(game_world: &mut GameWorld, score: &mut i32, cmds: &mut Vec<renderer::RenderAssetCommands>) {
+pub fn update_score_system(
+    game_world: &mut GameWorld,
+    score: &mut i32,
+    cmds: &mut Vec<renderer::RenderAssetCommands>,
+) {
     let GameWorld { world, events, .. } = game_world;
     for event in events {
         match event {
             Event::SnakeEatFood { .. } => {
                 *score += 1;
-                for (_, (text, _score)) in &mut world.query::<(&mut components::Text, &components::Score)>() {
+                for (_, (text, _score)) in
+                    &mut world.query::<(&mut components::Text, &components::Score)>()
+                {
                     let cmd = text.update_text(format!("Score:  {}", score));
                     cmds.push(cmd);
                 }
             }
             Event::GameOver => {
                 *score = 0;
-                for (_, (text, _score)) in &mut world.query::<(&mut components::Text, &components::Score)>() {
+                for (_, (text, _score)) in
+                    &mut world.query::<(&mut components::Text, &components::Score)>()
+                {
                     let cmd = text.update_text(format!("Score:  {}", score));
                     cmds.push(cmd);
                 }
@@ -132,7 +140,6 @@ pub fn update_score_system(game_world: &mut GameWorld, score: &mut i32, cmds: &m
         }
     }
 }
-
 
 pub fn despawn_food_system(game_world: &mut GameWorld) {
     let GameWorld { world, events, .. } = game_world;
@@ -290,7 +297,7 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::R
     for (_, (asset_type, pos)) in &mut world.query::<(&assets::AssetType, &components::Position)>()
     {
         commands.push(renderer::SpriteRenderCommand {
-            binding: *asset_type,
+            binding: asset_type.clone().into(),
             position: pos.0,
             num_of_elements: 6,
             angle: 0.,
@@ -306,7 +313,7 @@ pub fn debug_render_cmds(game_world: &mut GameWorld, cmds: &mut renderer::Render
         let velocity = Vec2::new(vel.x, vel.y * -1.);
         let angle = velocity.angle_between(Vec2::new(1., 0.));
         cmds.push(renderer::SpriteRenderCommand {
-            binding: assets::AssetType::Arrow,
+            binding: "Arrow".into(),
             position: vel + pos.0,
             num_of_elements: 9,
             angle,
