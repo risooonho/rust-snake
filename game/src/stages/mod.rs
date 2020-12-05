@@ -19,8 +19,8 @@ pub enum NextStage {
 }
 
 pub trait Stage {
-    fn enter(&mut self) {}
-    fn exit(&mut self) {}
+    fn enter(&mut self, _renderer: &mut graphics::MainRenderer) {}
+    fn exit(&mut self, _renderer: &mut graphics::MainRenderer) {}
     fn update(&mut self, input: &Input, _renderer: &mut graphics::MainRenderer) -> NextStage;
     fn draw(&mut self, _ctx: &mut Context, _renderer: &mut graphics::MainRenderer) {}
 }

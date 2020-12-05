@@ -249,18 +249,18 @@ impl MainRenderer {
             MeshAsset::new("Arrow", vec![arrow_mesh.0], arrow_mesh.1, arrow_mesh.2),
         );
 
-        let mut example_font = font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
+        let mut fallback_font = font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
         for char in font::ascii_character_list() {
-            example_font.cache_glyph(char);
+            fallback_font.cache_glyph(char);
         }
-        let tex = example_font.texture(ctx);
+        let tex = fallback_font.texture(ctx);
         let (vertices, indices, _) = utils::make_square(ctx, 32.);
         let bindings = miniquad::Bindings {
             vertex_buffers: vec![vertices],
             index_buffer: indices,
             images: vec![tex],
         };
-        fonts.insert(example_font.name.clone(), example_font);
+        fonts.insert(fallback_font.name.clone(), fallback_font);
 
         Self {
             asset_commands: Vec::with_capacity(32),

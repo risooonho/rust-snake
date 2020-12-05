@@ -11,13 +11,13 @@ mod stages;
 mod systems;
 mod utils;
 
-struct Stage {
+struct SnakeGame {
     stages: stages::StageStack,
     renderer: graphics::MainRenderer,
     input: components::Input,
 }
 
-impl Stage {
+impl SnakeGame {
     pub fn new(ctx: &mut Context) -> Self {
         let mut renderer = graphics::MainRenderer::new(ctx);
 
@@ -26,16 +26,17 @@ impl Stage {
         input.width = width;
         input.height = height;
         let mut stages = stages::new_stage_stack(16);
-        let game_stage = Box::new(GameState::new(&input, &mut renderer.asset_commands));
+        let init_state = GameState::new(&input, &mut renderer.asset_commands);
+        let game_stage = Box::new(init_state);
 
         stages.push(game_stage as Box<dyn stages::Stage>);
 
 
-        Self { stages, renderer, input }
+        SnakeGame { stages, renderer, input }
     }
 }
 
-impl EventHandler for Stage {
+impl EventHandler for SnakeGame {
     fn resize_event(&mut self, _ctx: &mut Context, width: f32, height: f32) {
         self.input.width = width;
         self.input.height = height;
@@ -50,15 +51,15 @@ impl EventHandler for Stage {
         let next_stage = stage.update(&self.input, &mut self.renderer);
         match next_stage {
             stages::NextStage::Push(mut new_stage) => {
-                stage.exit();
-                new_stage.enter();
+                stage.exit(&mut self.renderer);
+                new_stage.enter(&mut self.renderer);
                 self.stages.push(new_stage);
             }
             stages::NextStage::Pop => {
-                stage.exit();
+                stage.exit(&mut self.renderer);
                 self.stages.pop().expect("Popped an Empty StageStack");
                 match self.stages.last_mut() {
-                    Some(s) => s.enter(),
+                    Some(s) => s.enter(&mut self.renderer),
                     _ => {}
                 };
             }
@@ -110,6 +111,6 @@ impl EventHandler for Stage {
 
 fn main() {
     miniquad::start(conf::Conf::default(), |mut ctx| {
-        UserData::owning(Stage::new(&mut ctx), ctx)
+        UserData::owning(SnakeGame::new(&mut ctx), ctx)
     });
 }
