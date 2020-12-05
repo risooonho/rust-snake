@@ -55,6 +55,43 @@ pub enum RenderAssetCommands {
     },
 }
 
+pub enum RenderCommand {
+    DrawMesh2D {
+        material: AssetIdentity,
+        mesh: AssetIdentity,
+        position: glam::Vec2,
+        rotation: f32,
+    },
+    DrawFont {
+        text: String,
+        font: AssetIdentity,
+    },
+}
+
+pub struct RenderTarget {
+    pub render_target: miniquad::Texture,
+    pub depth_target: Option<miniquad::Texture>,
+    pub commands: Vec<RenderCommand>,
+}
+
+impl RenderTarget {
+    pub fn new(ctx: &mut miniquad::Context, width: u32, height: u32) -> Self {
+        let render_target = miniquad::Texture::new_render_texture(
+            ctx,
+            miniquad::TextureParams {
+                width,
+                height,
+                ..Default::default()
+            },
+        );
+        Self {
+            render_target,
+            depth_target: None,
+            commands: Vec::with_capacity(128),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct MeshAsset {
     pub identity: AssetIdentity,
@@ -107,6 +144,9 @@ pub struct MainRenderer {
     pub materials: Materials,
     pub projection: glam::Mat4,
     pub view: glam::Mat4,
+    pub main_render_target: RenderTarget,
+    pub render_quad_pipeline: miniquad::Pipeline,
+    pub main_render_quad: MeshAsset,
 }
 
 fn create_text_buffer(
@@ -181,10 +221,7 @@ impl MainRenderer {
         let shader_pipeline = Pipeline::with_params(
             ctx,
             &[BufferLayout::default()],
-            &[
-                VertexAttribute::new("pos", VertexFormat::Float2),
-                VertexAttribute::new("uv", VertexFormat::Float2),
-            ],
+            &shaders::Vertex::buffer_formats(),
             shader,
             PipelineParams {
                 color_blend: Some(BlendState::new(
@@ -194,6 +231,16 @@ impl MainRenderer {
                 )),
                 ..Default::default()
             },
+        );
+        let shader = shaders::screen::new(ctx).unwrap();
+        let render_quad_pipeline = Pipeline::with_params(
+            ctx,
+            &[miniquad::BufferLayout::default()],
+            &shaders::Vertex::buffer_formats(),
+                shader,
+             miniquad::PipelineParams{
+                 ..Default::default()
+             }
         );
 
         let mut materials = HashMap::new();
@@ -249,7 +296,8 @@ impl MainRenderer {
             MeshAsset::new("Arrow", vec![arrow_mesh.0], arrow_mesh.1, arrow_mesh.2),
         );
 
-        let mut fallback_font = font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
+        let mut fallback_font =
+            font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
         for char in font::ascii_character_list() {
             fallback_font.cache_glyph(char);
         }
@@ -262,6 +310,11 @@ impl MainRenderer {
         };
         fonts.insert(fallback_font.name.clone(), fallback_font);
 
+        let render_mesh = crate::utils::make_rectangle(ctx, 1., 1.);
+        let main_render_quad = MeshAsset::new("MainRenderTarget", vec![render_mesh.0], render_mesh.1, render_mesh.2);
+        let (width, height) = ctx.screen_size();
+        let main_render_target = RenderTarget::new(ctx, width as u32, height as u32);
+
         Self {
             asset_commands: Vec::with_capacity(32),
             debug_font_bindings: bindings,
@@ -273,7 +326,10 @@ impl MainRenderer {
             render_font_commands: Vec::with_capacity(64),
             render_commands: Vec::with_capacity(64),
             shader_pipeline,
+            render_quad_pipeline,
             view: glam::Mat4::identity(),
+            main_render_target,
+            main_render_quad
         }
     }
 
@@ -311,11 +367,19 @@ impl MainRenderer {
     }
 
     pub fn draw(&mut self, ctx: &mut Context) {
-        ctx.begin_default_pass(PassAction::Clear {
-            color: Some(graphics::colors::DARKGRAY.into()),
-            depth: Some(1.),
-            stencil: None,
-        });
+        let render_pass = miniquad::RenderPass::new(
+            ctx,
+            self.main_render_target.render_target,
+            self.main_render_target.depth_target,
+        );
+        ctx.begin_pass(
+            render_pass,
+            miniquad::PassAction::Clear {
+                color: Some(graphics::colors::DARKGRAY.into()),
+                depth: Some(1.),
+                stencil: None,
+            },
+        );
 
         let mut uniform = crate::shaders::sprite::VertexUniforms {
             projection: self.projection,
@@ -390,7 +454,22 @@ impl MainRenderer {
             }
         }
         ctx.end_render_pass();
+
+        ctx.begin_default_pass(PassAction::Nothing);
+
+        // TODO: Add post processinging pipeline
+        ctx.apply_pipeline(&self.render_quad_pipeline);
+        let main_render_bindings = miniquad::Bindings {
+            vertex_buffers: self.main_render_quad.vertices.clone(),
+            index_buffer: self.main_render_quad.indices,
+            images: vec![self.main_render_target.render_target],
+        };
+        ctx.apply_bindings(&main_render_bindings);
+        ctx.draw(0, self.main_render_quad.num_of_indices as i32, 1);
+
+        ctx.end_render_pass();
         ctx.commit_frame();
+
         self.render_commands.clear();
     }
 }

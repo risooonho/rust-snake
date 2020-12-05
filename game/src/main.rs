@@ -26,7 +26,7 @@ impl SnakeGame {
         input.width = width;
         input.height = height;
         let mut stages = stages::new_stage_stack(16);
-        let init_state = GameState::new(&input, &mut renderer.asset_commands);
+        let init_state = GameState::new(&input, &mut renderer);
         let game_stage = Box::new(init_state);
 
         stages.push(game_stage as Box<dyn stages::Stage>);

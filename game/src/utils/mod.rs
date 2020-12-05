@@ -46,26 +46,26 @@ pub fn make_arrow(ctx: &mut Context) -> (Buffer, Buffer, u16) {
 }
 
 pub fn make_square(ctx: &mut Context, size: f32) -> (Buffer, Buffer, u16) {
-    make_rectangle(ctx, size, size)
+    make_rectangle(ctx, size / 2., size / 2.)
 }
 
 pub fn make_rectangle(ctx: &mut Context, width: f32, height: f32) -> (Buffer, Buffer, u16) {
     let vertices = [
         Vertex {
-            pos: Vec2::new(-width / 2., -height / 2.),
-            uv: Vec2::new(0., 1.),
+            pos: Vec2::new(-width, -height),
+            uv: Vec2::new(0., 0.),
         },
         Vertex {
-            pos: Vec2::new(width / 2., -height / 2.),
-            uv: Vec2::new(1., 1.),
-        },
-        Vertex {
-            pos: Vec2::new(width / 2., height / 2.),
+            pos: Vec2::new(width, -height),
             uv: Vec2::new(1., 0.),
         },
         Vertex {
-            pos: Vec2::new(-width / 2., height / 2.),
-            uv: Vec2::new(0., 0.),
+            pos: Vec2::new(width, height),
+            uv: Vec2::new(1., 1.),
+        },
+        Vertex {
+            pos: Vec2::new(-width, height),
+            uv: Vec2::new(0., 1.),
         },
     ];
     let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];

@@ -18,7 +18,7 @@ pub struct GameState {
 impl GameState {
     pub fn new(
         input: &components::Input,
-        asset_cmds: &mut Vec<renderer::RenderAssetCommands>,
+        renderer: &mut renderer::MainRenderer,
     ) -> Self {
         let mut game_world = GameWorld {
             events: Vec::with_capacity(32),
@@ -34,7 +34,7 @@ impl GameState {
             components::Position(glam::Vec2::new(-24., 18.)),
             text_component,
         ));
-        asset_cmds.push(load_cmd);
+        renderer.asset_commands.push(load_cmd);
 
         GameState {
             direction: components::Direction::Up,
