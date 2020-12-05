@@ -9,7 +9,7 @@ use crate::shaders;
 use crate::utils;
 
 pub type Materials = HashMap<AssetIdentity, MaterialAsset>;
-pub type Meshes = HashMap<AssetIdentity, (Vec<miniquad::Buffer>, miniquad::Buffer)>;
+pub type Meshes = HashMap<AssetIdentity, MeshAsset>;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct AssetIdentity(pub String);
@@ -59,8 +59,24 @@ pub enum RenderAssetCommands {
 pub struct MeshAsset {
     pub identity: AssetIdentity,
     pub vertices: Vec<miniquad::Buffer>,
-    pub indices: Vec<miniquad::Buffer>,
+    pub indices: miniquad::Buffer,
     pub num_of_indices: u16,
+}
+
+impl MeshAsset {
+    pub fn new<T: Into<AssetIdentity>>(
+        identity: T,
+        vertices: Vec<miniquad::Buffer>,
+        indices: miniquad::Buffer,
+        num_of_indices: u16,
+    ) -> Self {
+        Self {
+            identity: identity.into(),
+            vertices,
+            indices,
+            num_of_indices,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -216,17 +232,29 @@ impl MainRenderer {
         let tail_mesh = crate::utils::make_square(ctx, 0.8);
         let arrow_mesh = crate::utils::make_arrow(ctx);
 
-        meshes.insert("Food".into(), (vec![food_mesh.0], food_mesh.1));
-        meshes.insert("Tail".into(), (vec![tail_mesh.0], tail_mesh.1));
-        meshes.insert("Snake".into(), (vec![snake_mesh.0], snake_mesh.1));
-        meshes.insert("Arrow".into(), (vec![arrow_mesh.0], arrow_mesh.1));
+        meshes.insert(
+            "Food".into(),
+            MeshAsset::new("Food", vec![food_mesh.0], food_mesh.1, food_mesh.2),
+        );
+        meshes.insert(
+            "Tail".into(),
+            MeshAsset::new("Tail", vec![tail_mesh.0], tail_mesh.1, tail_mesh.2),
+        );
+        meshes.insert(
+            "Snake".into(),
+            MeshAsset::new("Snake", vec![snake_mesh.0], snake_mesh.1, snake_mesh.2),
+        );
+        meshes.insert(
+            "Arrow".into(),
+            MeshAsset::new("Arrow", vec![arrow_mesh.0], arrow_mesh.1, arrow_mesh.2),
+        );
 
         let mut example_font = font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
         for char in font::ascii_character_list() {
             example_font.cache_glyph(char);
         }
         let tex = example_font.texture(ctx);
-        let (vertices, indices) = utils::make_square(ctx, 32.);
+        let (vertices, indices, _) = utils::make_square(ctx, 32.);
         let bindings = miniquad::Bindings {
             vertex_buffers: vec![vertices],
             index_buffer: indices,
@@ -304,7 +332,7 @@ impl MainRenderer {
                 angle,
             } in self.render_commands.iter()
             {
-                let (vertex_buffers, index_buffer) = match self.meshes.get(binding) {
+                let mesh = match self.meshes.get(binding) {
                     Some(m) => m,
                     _ => continue,
                 };
@@ -318,8 +346,8 @@ impl MainRenderer {
                 );
                 uniform.model = model;
                 let bindings = miniquad::Bindings {
-                    vertex_buffers: vertex_buffers.clone(),
-                    index_buffer: index_buffer.clone(),
+                    vertex_buffers: mesh.vertices.clone(),
+                    index_buffer: mesh.indices.clone(),
                     images: material.textures.clone(),
                 };
                 ctx.apply_bindings(&bindings);
