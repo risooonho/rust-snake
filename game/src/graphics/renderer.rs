@@ -8,8 +8,7 @@ use crate::graphics::font;
 use crate::shaders;
 use crate::utils;
 
-pub type RenderCommands = Vec<SpriteRenderCommand>;
-pub type Materials = HashMap<AssetIdentity, Vec<Texture>>;
+pub type Materials = HashMap<AssetIdentity, MaterialAsset>;
 pub type Meshes = HashMap<AssetIdentity, (Vec<miniquad::Buffer>, miniquad::Buffer)>;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -54,6 +53,29 @@ pub enum RenderAssetCommands {
         text: String,
         font: String,
     },
+}
+
+#[derive(Debug, Clone)]
+pub struct MeshAsset {
+    pub identity: AssetIdentity,
+    pub vertices: Vec<miniquad::Buffer>,
+    pub indices: Vec<miniquad::Buffer>,
+    pub num_of_indices: u16,
+}
+
+#[derive(Debug, Clone)]
+pub struct MaterialAsset {
+    pub identity: AssetIdentity,
+    pub textures: Vec<miniquad::Texture>,
+}
+
+impl MaterialAsset {
+    pub fn new<T: Into<AssetIdentity>>(identity: T, textures: Vec<miniquad::Texture>) -> Self {
+        Self {
+            identity: identity.into(),
+            textures,
+        }
+    }
 }
 
 pub struct MainRenderer {
@@ -172,10 +194,22 @@ impl MainRenderer {
 
         let mut fonts = HashMap::new();
 
-        materials.insert("Food".into(), vec![food_texture]);
-        materials.insert("Tail".into(), vec![tail_texture]);
-        materials.insert("Snake".into(), vec![snake_texture]);
-        materials.insert("Arrow".into(), vec![arrow_texture]);
+        materials.insert(
+            "Food".into(),
+            MaterialAsset::new("Food", vec![food_texture]),
+        );
+        materials.insert(
+            "Tail".into(),
+            MaterialAsset::new("Tail", vec![tail_texture]),
+        );
+        materials.insert(
+            "Snake".into(),
+            MaterialAsset::new("Snake", vec![snake_texture]),
+        );
+        materials.insert(
+            "Arrow".into(),
+            MaterialAsset::new("Arrow", vec![arrow_texture]),
+        );
 
         let snake_mesh = crate::utils::make_square(ctx, 1.);
         let food_mesh = crate::utils::make_square(ctx, 0.8);
@@ -286,7 +320,7 @@ impl MainRenderer {
                 let bindings = miniquad::Bindings {
                     vertex_buffers: vertex_buffers.clone(),
                     index_buffer: index_buffer.clone(),
-                    images: material.clone(),
+                    images: material.textures.clone(),
                 };
                 ctx.apply_bindings(&bindings);
                 ctx.apply_uniforms(&uniform);

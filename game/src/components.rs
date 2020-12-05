@@ -48,7 +48,7 @@ impl Input {
 // }
 
 fn inv_lerp(low: f64, high: f64, alpha: f64) -> f64 {
-    ( alpha - low ) / ( high - low )
+    (alpha - low) / (high - low)
 }
 
 // fn remap( original_min: f32, original_max: f32, new_min: f32, new_max: f32, value: f32) -> f32 {
@@ -104,7 +104,6 @@ impl Timer {
 
         self.paused_time = None;
     }
-
 }
 
 #[derive(Copy, Clone)]
@@ -116,7 +115,7 @@ pub struct Camera2D {
 
 impl Camera2D {
     pub fn new(input: &components::Input, scale: f32) -> Camera2D {
-        let components::Input{ width, height, .. } = input;
+        let components::Input { width, height, .. } = input;
         let aspect = width / height;
         let projection =
             Mat4::orthographic_rh_gl(-aspect * scale, aspect * scale, -scale, scale, -1., 1.0);
@@ -242,7 +241,7 @@ impl Text {
     fn new(str: &str) -> Text {
         Text {
             string: String::from_str(str).expect("Failed to Create Text"),
-            font: "KenneyFuture".to_string()
+            font: "KenneyFuture".to_string(),
         }
     }
 
@@ -273,3 +272,9 @@ impl Text {
         out
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Material(pub renderer::AssetIdentity);
+
+#[derive(Debug, Clone)]
+pub struct Mesh(pub renderer::AssetIdentity);
