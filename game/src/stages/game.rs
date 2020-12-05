@@ -15,16 +15,19 @@ pub struct GameState {
     score: i32,
 }
 
-
 impl GameState {
-    pub fn new(input: &components::Input, asset_cmds: &mut Vec<renderer::RenderAssetCommands>) -> Self {
+    pub fn new(
+        input: &components::Input,
+        asset_cmds: &mut Vec<renderer::RenderAssetCommands>,
+    ) -> Self {
         let mut game_world = GameWorld {
             events: Vec::with_capacity(32),
             camera: components::Camera2D::new(input, 20.),
             world: hecs::World::new(),
         };
         systems::create_snake_system(&mut game_world);
-        let (load_cmd, text_component) = components::Text::create_text(format!("Score:  {}", 0).as_str());
+        let (load_cmd, text_component) =
+            components::Text::create_text(format!("Score:  {}", 0).as_str());
 
         game_world.world.spawn((
             components::Score,
@@ -57,7 +60,7 @@ impl Stage for GameState {
     fn update(&mut self, input: &Input, renderer: &mut graphics::MainRenderer) -> NextStage {
         let input = input.clone();
         if input.resized {
-            let Input{ width, height, .. } = input;
+            let Input { width, height, .. } = input;
             self.game_world.camera.resize(width, height);
         }
         if input.pause {
@@ -81,7 +84,11 @@ impl Stage for GameState {
         }
 
         systems::despawn_food_system(&mut self.game_world);
-        systems::update_score_system(&mut self.game_world, &mut self.score, &mut renderer.asset_commands);
+        systems::update_score_system(
+            &mut self.game_world,
+            &mut self.score,
+            &mut renderer.asset_commands,
+        );
         if systems::game_over_system(&mut self.game_world) {
             self.move_timer.reset();
             self.food_timer.reset();
@@ -93,8 +100,8 @@ impl Stage for GameState {
 
     fn draw(&mut self, _ctx: &mut Context, renderer: &mut graphics::MainRenderer) {
         renderer.update_view(&self.game_world.camera);
-        systems::gather_render_cmds(&mut self.game_world, &mut renderer.render_commands);
-        systems::debug_render_cmds(&mut self.game_world, &mut renderer.render_commands);
+        systems::gather_render_cmds(&mut self.game_world, renderer);
+        systems::debug_render_cmds(&mut self.game_world, renderer);
         systems::draw_text(&mut self.game_world, renderer);
     }
 }

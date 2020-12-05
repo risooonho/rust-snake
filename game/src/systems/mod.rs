@@ -292,8 +292,9 @@ pub fn game_over_system(game_world: &mut GameWorld) -> bool {
     false
 }
 
-pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::RenderCommands) {
+pub fn gather_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
     let GameWorld { world, .. } = game_world;
+    let commands = &mut renderer.render_commands;
     for (_, (asset_type, pos)) in &mut world.query::<(&assets::AssetType, &components::Position)>()
     {
         commands.push(renderer::SpriteRenderCommand {
@@ -305,8 +306,9 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, commands: &mut renderer::R
     }
 }
 
-pub fn debug_render_cmds(game_world: &mut GameWorld, cmds: &mut renderer::RenderCommands) {
+pub fn debug_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
     let GameWorld { world, .. } = game_world;
+    let cmds = &mut renderer.render_commands;
     for (_, (dir, pos)) in &mut world.query::<(&components::HeadDirection, &components::Position)>()
     {
         let vel = dir.0.velocity();
