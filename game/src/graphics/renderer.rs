@@ -172,6 +172,7 @@ impl MaterialAsset {
 }
 
 pub struct MainRenderer {
+    pub ctx: miniquad::Context,
     pub debug_font_bindings: miniquad::Bindings,
     pub shader_pipeline: miniquad::Pipeline,
     // TODO(jhurstwright): These should be consolidated into a UnionEnum
@@ -191,7 +192,6 @@ pub struct MainRenderer {
 
 fn create_text_buffer(
     renderer: &mut graphics::MainRenderer,
-    ctx: &mut Context,
     text: String,
     font: &String,
 ) -> Option<(Vec<miniquad::Buffer>, miniquad::Buffer)> {
@@ -250,119 +250,141 @@ fn create_text_buffer(
             offset += glyph.advance * scale;
         }
     }
-    let vertex_buffer = Buffer::immutable(ctx, BufferType::VertexBuffer, &vertices);
-    let index_buffer = Buffer::immutable(ctx, BufferType::IndexBuffer, &indices);
+    let vertex_buffer = Buffer::immutable(&mut renderer.ctx, BufferType::VertexBuffer, &vertices);
+    let index_buffer = Buffer::immutable(&mut renderer.ctx, BufferType::IndexBuffer, &indices);
     Some((vec![vertex_buffer], index_buffer))
 }
 
 impl MainRenderer {
-    pub fn new(ctx: &mut Context) -> Self {
-        let shader = shaders::sprite::new(ctx).unwrap();
-        let shader_pipeline = Pipeline::with_params(
-            ctx,
-            &[BufferLayout::default()],
-            &shaders::Vertex::buffer_formats(),
-            shader,
-            PipelineParams {
-                color_blend: Some(BlendState::new(
-                    miniquad::Equation::Add,
-                    miniquad::BlendFactor::Value(BlendValue::SourceAlpha),
-                    BlendFactor::OneMinusValue(BlendValue::SourceAlpha),
-                )),
-                ..Default::default()
-            },
-        );
-        let shader = shaders::screen::new(ctx).unwrap();
-        let render_quad_pipeline = Pipeline::with_params(
-            ctx,
-            &[miniquad::BufferLayout::default()],
-            &shaders::Vertex::buffer_formats(),
-            shader,
-            miniquad::PipelineParams {
-                ..Default::default()
-            },
-        );
+    pub fn new(mut context: miniquad::Context) -> Self {
+        let (
+            fonts,
+            materials,
+            meshes,
+            shader_pipeline,
+            render_quad_pipeline,
+            main_render_target,
+            main_render_quad,
+            debug_font_bindings,
+        ) = {
+            let ctx = &mut context;
 
-        let mut materials = HashMap::new();
-        let mut meshes = HashMap::new();
+            let shader = shaders::sprite::new(ctx).unwrap();
+            let shader_pipeline = Pipeline::with_params(
+                ctx,
+                &[BufferLayout::default()],
+                &shaders::Vertex::buffer_formats(),
+                shader,
+                PipelineParams {
+                    color_blend: Some(BlendState::new(
+                        miniquad::Equation::Add,
+                        miniquad::BlendFactor::Value(BlendValue::SourceAlpha),
+                        BlendFactor::OneMinusValue(BlendValue::SourceAlpha),
+                    )),
+                    ..Default::default()
+                },
+            );
+            let shader = shaders::screen::new(ctx).unwrap();
+            let render_quad_pipeline = Pipeline::with_params(
+                ctx,
+                &[miniquad::BufferLayout::default()],
+                &shaders::Vertex::buffer_formats(),
+                shader,
+                miniquad::PipelineParams {
+                    ..Default::default()
+                },
+            );
 
-        let snake_texture =
-            crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
-        let tail_texture =
-            crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
-        let food_texture =
-            crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
-        let arrow_texture =
-            crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RED);
+            let mut materials = HashMap::new();
+            let mut meshes = HashMap::new();
 
-        let mut fonts = HashMap::new();
+            let snake_texture =
+                crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
+            let tail_texture =
+                crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
+            let food_texture =
+                crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
+            let arrow_texture =
+                crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RED);
 
-        materials.insert(
-            "Food".into(),
-            MaterialAsset::new("Food", vec![food_texture]),
-        );
-        materials.insert(
-            "Tail".into(),
-            MaterialAsset::new("Tail", vec![tail_texture]),
-        );
-        materials.insert(
-            "Snake".into(),
-            MaterialAsset::new("Snake", vec![snake_texture]),
-        );
-        materials.insert(
-            "Arrow".into(),
-            MaterialAsset::new("Arrow", vec![arrow_texture]),
-        );
+            let mut fonts = HashMap::new();
 
-        let snake_mesh = crate::utils::make_square(ctx, 1.);
-        let food_mesh = crate::utils::make_square(ctx, 0.8);
-        let tail_mesh = crate::utils::make_square(ctx, 0.8);
-        let arrow_mesh = crate::utils::make_arrow(ctx);
+            materials.insert(
+                "Food".into(),
+                MaterialAsset::new("Food", vec![food_texture]),
+            );
+            materials.insert(
+                "Tail".into(),
+                MaterialAsset::new("Tail", vec![tail_texture]),
+            );
+            materials.insert(
+                "Snake".into(),
+                MaterialAsset::new("Snake", vec![snake_texture]),
+            );
+            materials.insert(
+                "Arrow".into(),
+                MaterialAsset::new("Arrow", vec![arrow_texture]),
+            );
 
-        meshes.insert(
-            "Food".into(),
-            MeshAsset::new("Food", vec![food_mesh.0], food_mesh.1, food_mesh.2),
-        );
-        meshes.insert(
-            "Tail".into(),
-            MeshAsset::new("Tail", vec![tail_mesh.0], tail_mesh.1, tail_mesh.2),
-        );
-        meshes.insert(
-            "Snake".into(),
-            MeshAsset::new("Snake", vec![snake_mesh.0], snake_mesh.1, snake_mesh.2),
-        );
-        meshes.insert(
-            "Arrow".into(),
-            MeshAsset::new("Arrow", vec![arrow_mesh.0], arrow_mesh.1, arrow_mesh.2),
-        );
+            let snake_mesh = crate::utils::make_square(ctx, 1.);
+            let food_mesh = crate::utils::make_square(ctx, 0.8);
+            let tail_mesh = crate::utils::make_square(ctx, 0.8);
+            let arrow_mesh = crate::utils::make_arrow(ctx);
 
-        let mut fallback_font =
-            font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
-        for char in font::ascii_character_list() {
-            fallback_font.cache_glyph(char);
-        }
-        let tex = fallback_font.texture(ctx);
-        let (vertices, indices, _) = utils::make_square(ctx, 32.);
-        let bindings = miniquad::Bindings {
-            vertex_buffers: vec![vertices],
-            index_buffer: indices,
-            images: vec![tex],
+            meshes.insert(
+                "Food".into(),
+                MeshAsset::new("Food", vec![food_mesh.0], food_mesh.1, food_mesh.2),
+            );
+            meshes.insert(
+                "Tail".into(),
+                MeshAsset::new("Tail", vec![tail_mesh.0], tail_mesh.1, tail_mesh.2),
+            );
+            meshes.insert(
+                "Snake".into(),
+                MeshAsset::new("Snake", vec![snake_mesh.0], snake_mesh.1, snake_mesh.2),
+            );
+            meshes.insert(
+                "Arrow".into(),
+                MeshAsset::new("Arrow", vec![arrow_mesh.0], arrow_mesh.1, arrow_mesh.2),
+            );
+
+            let mut fallback_font =
+                font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
+            for char in font::ascii_character_list() {
+                fallback_font.cache_glyph(char);
+            }
+            let tex = fallback_font.texture(ctx);
+            let (vertices, indices, _) = utils::make_square(ctx, 32.);
+            let bindings = miniquad::Bindings {
+                vertex_buffers: vec![vertices],
+                index_buffer: indices,
+                images: vec![tex],
+            };
+            fonts.insert(fallback_font.name.clone(), fallback_font);
+
+            let render_mesh = crate::utils::make_rectangle(ctx, 1., 1.);
+            let main_render_quad = MeshAsset::new(
+                "MainRenderTarget",
+                vec![render_mesh.0],
+                render_mesh.1,
+                render_mesh.2,
+            );
+            let (width, height) = ctx.screen_size();
+            let main_render_target = RenderTarget::new(ctx, width as u32, height as u32);
+            (
+            fonts,
+            materials,
+            meshes,
+            shader_pipeline,
+            render_quad_pipeline,
+            main_render_target,
+            main_render_quad,
+            bindings,
+            )
         };
-        fonts.insert(fallback_font.name.clone(), fallback_font);
-
-        let render_mesh = crate::utils::make_rectangle(ctx, 1., 1.);
-        let main_render_quad = MeshAsset::new(
-            "MainRenderTarget",
-            vec![render_mesh.0],
-            render_mesh.1,
-            render_mesh.2,
-        );
-        let (width, height) = ctx.screen_size();
-        let main_render_target = RenderTarget::new(ctx, width as u32, height as u32);
-
         Self {
             asset_commands: Vec::with_capacity(32),
-            debug_font_bindings: bindings,
+            debug_font_bindings,
             fonts,
             materials,
             meshes,
@@ -375,6 +397,7 @@ impl MainRenderer {
             view: glam::Mat4::identity(),
             main_render_target,
             main_render_quad,
+            ctx: context,
         }
     }
 
@@ -383,12 +406,12 @@ impl MainRenderer {
         self.view = camera.view;
     }
 
-    pub fn load_assets(&mut self, ctx: &mut Context) {
+    pub fn load_assets(&mut self) {
         let commands: Vec<RenderAssetCommands> = self.asset_commands.drain(..).collect();
         commands.iter().for_each(|cmd| match cmd {
             RenderAssetCommands::LoadText { text, font } => {
                 if !self.texts.contains_key(text) {
-                    let buffer = create_text_buffer(self, ctx, text.clone(), font);
+                    let buffer = create_text_buffer(self, text.clone(), font);
                     if let Some(buffers) = buffer {
                         self.texts.insert(text.clone(), buffers);
                     }
@@ -403,7 +426,7 @@ impl MainRenderer {
                     vertices.iter().for_each(|b| b.delete());
                     indices.delete();
                 }
-                let buffer = create_text_buffer(self, ctx, new_text.clone(), font);
+                let buffer = create_text_buffer(self, new_text.clone(), font);
                 if let Some(buffers) = buffer {
                     self.texts.insert(new_text.clone(), buffers);
                 }
@@ -411,13 +434,13 @@ impl MainRenderer {
         });
     }
 
-    pub fn draw(&mut self, ctx: &mut Context) {
+    pub fn draw(&mut self) {
         let render_pass = miniquad::RenderPass::new(
-            ctx,
+            &mut self.ctx,
             self.main_render_target.render_target,
             self.main_render_target.depth_target,
         );
-        ctx.begin_pass(
+        self.ctx.begin_pass(
             render_pass,
             miniquad::PassAction::Clear {
                 color: Some(graphics::colors::DARKGRAY.into()),
@@ -432,7 +455,7 @@ impl MainRenderer {
             model: glam::Mat4::identity(),
         };
 
-        ctx.apply_pipeline(&self.shader_pipeline);
+        self.ctx.apply_pipeline(&self.shader_pipeline);
         {
             for SpriteRenderCommand {
                 position,
@@ -459,9 +482,9 @@ impl MainRenderer {
                     index_buffer: mesh.indices.clone(),
                     images: material.textures.clone(),
                 };
-                ctx.apply_bindings(&bindings);
-                ctx.apply_uniforms(&uniform);
-                ctx.draw(0, *num_of_elements, 1);
+                self.ctx.apply_bindings(&bindings);
+                self.ctx.apply_uniforms(&uniform);
+                self.ctx.draw(0, *num_of_elements, 1);
             }
         }
 
@@ -478,9 +501,9 @@ impl MainRenderer {
             let (bindings, elements) = self.prepare_draw(&render_cmd.mesh, &render_cmd.material);
             let model = render_cmd.model();
             uniform.model = model;
-            ctx.apply_bindings(&bindings);
-            ctx.apply_uniforms(&uniform);
-            ctx.draw(0, elements as i32, 1);
+            self.ctx.apply_bindings(&bindings);
+            self.ctx.apply_uniforms(&uniform);
+            self.ctx.draw(0, elements as i32, 1);
         }
 
         // Show how the text is Rendered
@@ -511,27 +534,28 @@ impl MainRenderer {
                     index_buffer: i.clone(),
                     images: m.clone(),
                 };
-                ctx.apply_bindings(&bindings);
-                ctx.apply_uniforms(&uniform);
-                ctx.draw(0, 6 * text.len() as i32, 1);
+                self.ctx.apply_bindings(&bindings);
+                self.ctx.apply_uniforms(&uniform);
+                self.ctx.draw(0, 6 * text.len() as i32, 1);
             }
         }
-        ctx.end_render_pass();
+        self.ctx.end_render_pass();
 
-        ctx.begin_default_pass(PassAction::Nothing);
+        self.ctx.begin_default_pass(PassAction::Nothing);
 
         // TODO: Add post processinging pipeline
-        ctx.apply_pipeline(&self.render_quad_pipeline);
+        self.ctx.apply_pipeline(&self.render_quad_pipeline);
         let main_render_bindings = miniquad::Bindings {
             vertex_buffers: self.main_render_quad.vertices.clone(),
             index_buffer: self.main_render_quad.indices,
             images: vec![self.main_render_target.render_target],
         };
-        ctx.apply_bindings(&main_render_bindings);
-        ctx.draw(0, self.main_render_quad.num_of_indices as i32, 1);
+        self.ctx.apply_bindings(&main_render_bindings);
+        self.ctx
+            .draw(0, self.main_render_quad.num_of_indices as i32, 1);
 
-        ctx.end_render_pass();
-        ctx.commit_frame();
+        self.ctx.end_render_pass();
+        self.ctx.commit_frame();
 
         self.render_commands.clear();
         self.main_render_target.commands.clear();

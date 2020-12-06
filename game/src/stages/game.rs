@@ -98,7 +98,7 @@ impl Stage for GameState {
         NextStage::Noop
     }
 
-    fn draw(&mut self, _ctx: &mut Context, renderer: &mut graphics::MainRenderer) {
+    fn draw(&mut self, renderer: &mut graphics::MainRenderer) {
         renderer.update_view(&self.game_world.camera);
         systems::gather_render_cmds(&mut self.game_world, renderer);
         systems::debug_render_cmds(&mut self.game_world, renderer);

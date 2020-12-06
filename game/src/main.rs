@@ -17,10 +17,10 @@ struct SnakeGame {
 }
 
 impl SnakeGame {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx:  Context) -> Self {
+        let (width, height) = ctx.screen_size();
         let mut renderer = graphics::MainRenderer::new(ctx);
 
-        let (width, height) = ctx.screen_size();
         let mut input = components::Input::default();
         input.width = width;
         input.height = height;
@@ -35,14 +35,14 @@ impl SnakeGame {
     }
 }
 
-impl EventHandler for SnakeGame {
-    fn resize_event(&mut self, _ctx: &mut Context, width: f32, height: f32) {
+impl EventHandlerFree for SnakeGame {
+    fn resize_event(&mut self, width: f32, height: f32) {
         self.input.width = width;
         self.input.height = height;
         self.input.resized = true;
     }
 
-    fn update(&mut self, ctx: &mut Context) {
+    fn update(&mut self) {
         let stage = match self.stages.last_mut() {
             Some(s) => s,
             _ => return,
@@ -64,20 +64,19 @@ impl EventHandler for SnakeGame {
             }
             _ => {}
         };
-        self.renderer.load_assets(ctx);
+        self.renderer.load_assets();
         self.input.reset();
     }
 
-    fn draw(&mut self, ctx: &mut Context) {
+    fn draw(&mut self) {
         for stage in self.stages.iter_mut() {
-            stage.draw(ctx, &mut self.renderer);
+            stage.draw(&mut self.renderer);
         }
-        self.renderer.draw(ctx);
+        self.renderer.draw();
     }
 
     fn key_down_event(
         &mut self,
-        _ctx: &mut Context,
         keycode: KeyCode,
         _keymods: KeyMods,
         repeat: bool,
@@ -110,6 +109,6 @@ impl EventHandler for SnakeGame {
 
 fn main() {
     miniquad::start(conf::Conf::default(), |mut ctx| {
-        UserData::owning(SnakeGame::new(&mut ctx), ctx)
+        UserData::free(SnakeGame::new(ctx))
     });
 }
