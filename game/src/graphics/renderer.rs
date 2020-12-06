@@ -429,6 +429,39 @@ impl MainRenderer {
             }
         }
 
+        for (elements, bindings, model) in self
+            .main_render_target
+            .commands
+            .iter()
+            .filter_map(|cmd| match cmd {
+                RenderCommand::DrawMesh2D(cmd) => {
+                    let mesh = match self.meshes.get(&cmd.mesh) {
+                        Some(mesh) => mesh,
+                        None => return None,
+                    };
+                    let material =  self.materials.get(&cmd.material).expect("Failed to get material, and developer failed to implement fallback default");
+                    let bindings = miniquad::Bindings {
+                        vertex_buffers: mesh.vertices.clone(),
+                        index_buffer: mesh.indices,
+                        images: material.textures.clone(),
+
+                    };
+
+                    let model = glam::Mat4::from_rotation_translation(
+                        glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), cmd.rotation),
+                        glam::Vec3::new(cmd.position.x, cmd.position.y, 0.),
+                    );
+                    let elements = mesh.num_of_indices;
+                    Some((elements, bindings, model))
+                }
+                RenderCommand::DrawFont(_) => None,
+            }) {
+                uniform.model = model;
+                ctx.apply_bindings(&bindings);
+                ctx.apply_uniforms(&uniform);
+                ctx.draw(0, elements as i32, 1);
+            }
+
         // Show how the text is Rendered
         // TODO(jhurstwright): I still want to put this into the Debug UI
         // {

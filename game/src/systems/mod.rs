@@ -21,12 +21,11 @@ pub fn create_snake_system(game_world: &mut GameWorld) {
     let GameWorld { world, .. } = game_world;
     let ahead = world.spawn((
         components::Snake,
-        assets::AssetType::Snake,
         components::Position(Vec2::new(0., 0.)),
         components::Velocity(Vec2::new(0., 1.)),
         components::HeadDirection::default(),
-        // components::Material("Snake".into()),
-        // components::Mesh("Snake".into()),
+        components::Material("Snake".into()),
+        components::Mesh("Snake".into()),
     ));
     let tail = components::Tail { segment: 1, ahead };
 
