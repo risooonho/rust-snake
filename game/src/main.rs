@@ -2,7 +2,6 @@ use miniquad::*;
 use stages::GameState;
 
 
-mod assets;
 mod components;
 mod events;
 mod graphics;

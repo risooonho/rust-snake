@@ -471,22 +471,12 @@ impl MainRenderer {
             .iter()
             .partition(|cmd| cmd.is_draw());
 
-        for (elements, bindings, model) in draw_cmds
+        for render_cmd in draw_cmds
             .iter()
             .filter_map(|draw| draw.clone().into_draw_2d())
-            .filter_map(|cmd| {
-                let mesh = self.meshes.get(&cmd.mesh).expect(
-                    "Failed to get mesh, and it should have been loaded before drying to draw it",
-                );
-                let material = self.materials.get(&cmd.material).expect(
-                    "Failed to get material, and developer failed to implement fallback default",
-                );
-                let bindings = mesh.bindings(material.textures.clone());
-                let model = cmd.model();
-                let elements = mesh.num_of_indices;
-                Some((elements, bindings, model))
-            })
         {
+            let (bindings, elements) = self.prepare_draw(&render_cmd.mesh, &render_cmd.material);
+            let model = render_cmd.model();
             uniform.model = model;
             ctx.apply_bindings(&bindings);
             ctx.apply_uniforms(&uniform);
@@ -545,5 +535,22 @@ impl MainRenderer {
 
         self.render_commands.clear();
         self.main_render_target.commands.clear();
+    }
+
+    fn prepare_draw(
+        &self,
+        mesh: &AssetIdentity,
+        material: &AssetIdentity,
+    ) -> (miniquad::Bindings, i32) {
+        let mesh = self
+            .meshes
+            .get(mesh)
+            .expect("Failed to get mesh, and it should have been loaded before drying to draw it");
+        let material = self
+            .materials
+            .get(material)
+            .expect("Failed to get material, and developer failed to implement fallback default");
+        let bindings = mesh.bindings(material.textures.clone());
+        (bindings, mesh.num_of_indices as i32)
     }
 }
