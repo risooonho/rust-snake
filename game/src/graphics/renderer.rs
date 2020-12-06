@@ -257,10 +257,10 @@ fn create_text_buffer(
 
 impl MainRenderer {
     pub fn new(mut context: miniquad::Context) -> Self {
+        let materials = HashMap::new();
+        let meshes = HashMap::new();
+        let mut fonts = HashMap::new();
         let (
-            fonts,
-            materials,
-            meshes,
             shader_pipeline,
             render_quad_pipeline,
             main_render_target,
@@ -295,59 +295,6 @@ impl MainRenderer {
                 },
             );
 
-            let mut materials = HashMap::new();
-            let mut meshes = HashMap::new();
-
-            let snake_texture =
-                crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
-            let tail_texture =
-                crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RAYWHITE);
-            let food_texture =
-                crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::PURPLE);
-            let arrow_texture =
-                crate::utils::build_square_texture(ctx, 4, crate::graphics::colors::RED);
-
-            let mut fonts = HashMap::new();
-
-            materials.insert(
-                "Food".into(),
-                MaterialAsset::new("Food", vec![food_texture]),
-            );
-            materials.insert(
-                "Tail".into(),
-                MaterialAsset::new("Tail", vec![tail_texture]),
-            );
-            materials.insert(
-                "Snake".into(),
-                MaterialAsset::new("Snake", vec![snake_texture]),
-            );
-            materials.insert(
-                "Arrow".into(),
-                MaterialAsset::new("Arrow", vec![arrow_texture]),
-            );
-
-            let snake_mesh = crate::utils::make_square(ctx, 1.);
-            let food_mesh = crate::utils::make_square(ctx, 0.8);
-            let tail_mesh = crate::utils::make_square(ctx, 0.8);
-            let arrow_mesh = crate::utils::make_arrow(ctx);
-
-            meshes.insert(
-                "Food".into(),
-                MeshAsset::new("Food", vec![food_mesh.0], food_mesh.1, food_mesh.2),
-            );
-            meshes.insert(
-                "Tail".into(),
-                MeshAsset::new("Tail", vec![tail_mesh.0], tail_mesh.1, tail_mesh.2),
-            );
-            meshes.insert(
-                "Snake".into(),
-                MeshAsset::new("Snake", vec![snake_mesh.0], snake_mesh.1, snake_mesh.2),
-            );
-            meshes.insert(
-                "Arrow".into(),
-                MeshAsset::new("Arrow", vec![arrow_mesh.0], arrow_mesh.1, arrow_mesh.2),
-            );
-
             let mut fallback_font =
                 font::Font::load("KenneyFuture", include_bytes!("KenneyFuture.ttf"));
             for char in font::ascii_character_list() {
@@ -372,9 +319,6 @@ impl MainRenderer {
             let (width, height) = ctx.screen_size();
             let main_render_target = RenderTarget::new(ctx, width as u32, height as u32);
             (
-            fonts,
-            materials,
-            meshes,
             shader_pipeline,
             render_quad_pipeline,
             main_render_target,

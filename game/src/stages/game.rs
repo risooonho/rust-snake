@@ -1,11 +1,13 @@
 use components::Input;
 use graphics::renderer;
-use miniquad::Context;
 
-use crate::components;
 use crate::graphics::{self};
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
+use crate::{
+    components,
+    graphics::renderer::{MaterialAsset, MeshAsset},
+};
 
 pub struct GameState {
     direction: components::Direction,
@@ -16,10 +18,7 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new(
-        input: &components::Input,
-        renderer: &mut renderer::MainRenderer,
-    ) -> Self {
+    pub fn new(input: &components::Input, renderer: &mut renderer::MainRenderer) -> Self {
         let mut game_world = GameWorld {
             events: Vec::with_capacity(32),
             camera: components::Camera2D::new(input, 20.),
@@ -35,6 +34,62 @@ impl GameState {
             text_component,
         ));
         renderer.asset_commands.push(load_cmd);
+
+        let snake_texture = crate::utils::build_square_texture(
+            &mut renderer.ctx,
+            4,
+            crate::graphics::colors::RAYWHITE,
+        );
+        let tail_texture = crate::utils::build_square_texture(
+            &mut renderer.ctx,
+            4,
+            crate::graphics::colors::RAYWHITE,
+        );
+        let food_texture = crate::utils::build_square_texture(
+            &mut renderer.ctx,
+            4,
+            crate::graphics::colors::PURPLE,
+        );
+        let arrow_texture =
+            crate::utils::build_square_texture(&mut renderer.ctx, 4, crate::graphics::colors::RED);
+        renderer.materials.insert(
+            "Food".into(),
+            MaterialAsset::new("Food", vec![food_texture]),
+        );
+        renderer.materials.insert(
+            "Tail".into(),
+            MaterialAsset::new("Tail", vec![tail_texture]),
+        );
+        renderer.materials.insert(
+            "Snake".into(),
+            MaterialAsset::new("Snake", vec![snake_texture]),
+        );
+        renderer.materials.insert(
+            "Arrow".into(),
+            MaterialAsset::new("Arrow", vec![arrow_texture]),
+        );
+
+        let snake_mesh = crate::utils::make_square(&mut renderer.ctx, 1.);
+        let food_mesh = crate::utils::make_square(&mut renderer.ctx, 0.8);
+        let tail_mesh = crate::utils::make_square(&mut renderer.ctx, 0.8);
+        let arrow_mesh = crate::utils::make_arrow(&mut renderer.ctx);
+
+        renderer.meshes.insert(
+            "Food".into(),
+            MeshAsset::new("Food", vec![food_mesh.0], food_mesh.1, food_mesh.2),
+        );
+        renderer.meshes.insert(
+            "Tail".into(),
+            MeshAsset::new("Tail", vec![tail_mesh.0], tail_mesh.1, tail_mesh.2),
+        );
+        renderer.meshes.insert(
+            "Snake".into(),
+            MeshAsset::new("Snake", vec![snake_mesh.0], snake_mesh.1, snake_mesh.2),
+        );
+        renderer.meshes.insert(
+            "Arrow".into(),
+            MeshAsset::new("Arrow", vec![arrow_mesh.0], arrow_mesh.1, arrow_mesh.2),
+        );
 
         GameState {
             direction: components::Direction::Up,
