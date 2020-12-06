@@ -308,12 +308,12 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::M
     }
     let main_draw_commands = &mut renderer.main_render_target.commands;
     for (_, (mesh, material, pos)) in &mut world.query::<(&components::Mesh, &components::Material, &components::Position)>() {
-        main_draw_commands.push(renderer::RenderCommand::DrawMesh2D{
+        main_draw_commands.push(renderer::RenderCommand::DrawMesh2D(renderer::DrawMesh2D {
             rotation: 0f32,
             material: material.0.clone(),
             mesh: mesh.0.clone(),
             position: pos.0,
-        });
+        }));
     }
 }
 

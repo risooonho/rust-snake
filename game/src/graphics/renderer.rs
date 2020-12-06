@@ -55,17 +55,21 @@ pub enum RenderAssetCommands {
     },
 }
 
+pub struct DrawMesh2D {
+    pub material: AssetIdentity,
+    pub mesh: AssetIdentity,
+    pub position: glam::Vec2,
+    pub rotation: f32,
+}
+
+pub struct DrawFont {
+    pub text: String,
+    pub font: AssetIdentity,
+}
+
 pub enum RenderCommand {
-    DrawMesh2D {
-        material: AssetIdentity,
-        mesh: AssetIdentity,
-        position: glam::Vec2,
-        rotation: f32,
-    },
-    DrawFont {
-        text: String,
-        font: AssetIdentity,
-    },
+    DrawMesh2D(DrawMesh2D),
+    DrawFont(DrawFont),
 }
 
 pub struct RenderTarget {
@@ -237,10 +241,10 @@ impl MainRenderer {
             ctx,
             &[miniquad::BufferLayout::default()],
             &shaders::Vertex::buffer_formats(),
-                shader,
-             miniquad::PipelineParams{
-                 ..Default::default()
-             }
+            shader,
+            miniquad::PipelineParams {
+                ..Default::default()
+            },
         );
 
         let mut materials = HashMap::new();
@@ -311,7 +315,12 @@ impl MainRenderer {
         fonts.insert(fallback_font.name.clone(), fallback_font);
 
         let render_mesh = crate::utils::make_rectangle(ctx, 1., 1.);
-        let main_render_quad = MeshAsset::new("MainRenderTarget", vec![render_mesh.0], render_mesh.1, render_mesh.2);
+        let main_render_quad = MeshAsset::new(
+            "MainRenderTarget",
+            vec![render_mesh.0],
+            render_mesh.1,
+            render_mesh.2,
+        );
         let (width, height) = ctx.screen_size();
         let main_render_target = RenderTarget::new(ctx, width as u32, height as u32);
 
@@ -329,7 +338,7 @@ impl MainRenderer {
             render_quad_pipeline,
             view: glam::Mat4::identity(),
             main_render_target,
-            main_render_quad
+            main_render_quad,
         }
     }
 
@@ -471,5 +480,6 @@ impl MainRenderer {
         ctx.commit_frame();
 
         self.render_commands.clear();
+        self.main_render_target.commands.clear();
     }
 }
