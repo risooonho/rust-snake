@@ -55,6 +55,7 @@ pub enum RenderAssetCommands {
     },
 }
 
+#[derive(Clone, Debug)]
 pub struct DrawMesh2D {
     pub material: AssetIdentity,
     pub mesh: AssetIdentity,
@@ -62,14 +63,41 @@ pub struct DrawMesh2D {
     pub rotation: f32,
 }
 
+impl DrawMesh2D {
+    pub fn model(&self) -> glam::Mat4 {
+        glam::Mat4::from_rotation_translation(
+            glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), self.rotation),
+            glam::Vec3::new(self.position.x, self.position.y, 0.),
+        )
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct DrawFont {
     pub text: String,
     pub font: AssetIdentity,
 }
 
+#[derive(Clone, Debug)]
 pub enum RenderCommand {
     DrawMesh2D(DrawMesh2D),
     DrawFont(DrawFont),
+}
+
+impl RenderCommand {
+    pub fn is_draw(&self) -> bool {
+        match self {
+            RenderCommand::DrawMesh2D(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn into_draw_2d(&self) -> Option<&'_ DrawMesh2D> {
+        match self {
+            RenderCommand::DrawMesh2D(mesh) => Some(mesh),
+            _ => None,
+        }
+    }
 }
 
 pub struct RenderTarget {
@@ -116,6 +144,14 @@ impl MeshAsset {
             vertices,
             indices,
             num_of_indices,
+        }
+    }
+
+    pub fn bindings(&self, images: Vec<miniquad::Texture>) -> miniquad::Bindings {
+        miniquad::Bindings {
+            vertex_buffers: self.vertices.clone(),
+            index_buffer: self.indices.clone(),
+            images,
         }
     }
 }
@@ -429,38 +465,33 @@ impl MainRenderer {
             }
         }
 
-        for (elements, bindings, model) in self
+        let (draw_cmds, _): (Vec<_>, Vec<_>) = self
             .main_render_target
             .commands
             .iter()
-            .filter_map(|cmd| match cmd {
-                RenderCommand::DrawMesh2D(cmd) => {
-                    let mesh = match self.meshes.get(&cmd.mesh) {
-                        Some(mesh) => mesh,
-                        None => return None,
-                    };
-                    let material =  self.materials.get(&cmd.material).expect("Failed to get material, and developer failed to implement fallback default");
-                    let bindings = miniquad::Bindings {
-                        vertex_buffers: mesh.vertices.clone(),
-                        index_buffer: mesh.indices,
-                        images: material.textures.clone(),
+            .partition(|cmd| cmd.is_draw());
 
-                    };
-
-                    let model = glam::Mat4::from_rotation_translation(
-                        glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), cmd.rotation),
-                        glam::Vec3::new(cmd.position.x, cmd.position.y, 0.),
-                    );
-                    let elements = mesh.num_of_indices;
-                    Some((elements, bindings, model))
-                }
-                RenderCommand::DrawFont(_) => None,
-            }) {
-                uniform.model = model;
-                ctx.apply_bindings(&bindings);
-                ctx.apply_uniforms(&uniform);
-                ctx.draw(0, elements as i32, 1);
-            }
+        for (elements, bindings, model) in draw_cmds
+            .iter()
+            .filter_map(|draw| draw.clone().into_draw_2d())
+            .filter_map(|cmd| {
+                let mesh = self.meshes.get(&cmd.mesh).expect(
+                    "Failed to get mesh, and it should have been loaded before drying to draw it",
+                );
+                let material = self.materials.get(&cmd.material).expect(
+                    "Failed to get material, and developer failed to implement fallback default",
+                );
+                let bindings = mesh.bindings(material.textures.clone());
+                let model = cmd.model();
+                let elements = mesh.num_of_indices;
+                Some((elements, bindings, model))
+            })
+        {
+            uniform.model = model;
+            ctx.apply_bindings(&bindings);
+            ctx.apply_uniforms(&uniform);
+            ctx.draw(0, elements as i32, 1);
+        }
 
         // Show how the text is Rendered
         // TODO(jhurstwright): I still want to put this into the Debug UI
