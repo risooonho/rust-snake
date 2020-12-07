@@ -186,8 +186,9 @@ pub struct MainRenderer {
     pub projection: glam::Mat4,
     pub view: glam::Mat4,
     pub main_render_target: RenderTarget,
+    pub debug_render_target: RenderTarget,
     pub render_quad_pipeline: miniquad::Pipeline,
-    pub main_render_quad: MeshAsset,
+    pub render_quad: MeshAsset,
 }
 
 fn create_text_buffer(
@@ -264,7 +265,8 @@ impl MainRenderer {
             shader_pipeline,
             render_quad_pipeline,
             main_render_target,
-            main_render_quad,
+            debug_render_target,
+            render_quad,
             debug_font_bindings,
         ) = {
             let ctx = &mut context;
@@ -310,7 +312,7 @@ impl MainRenderer {
             fonts.insert(fallback_font.name.clone(), fallback_font);
 
             let render_mesh = crate::utils::make_rectangle(ctx, 1., 1.);
-            let main_render_quad = MeshAsset::new(
+            let render_quad = MeshAsset::new(
                 "MainRenderTarget",
                 vec![render_mesh.0],
                 render_mesh.1,
@@ -318,11 +320,13 @@ impl MainRenderer {
             );
             let (width, height) = ctx.screen_size();
             let main_render_target = RenderTarget::new(ctx, width as u32, height as u32);
+            let debug_render_target = RenderTarget::new(ctx, width as u32, height as u32);
             (
             shader_pipeline,
             render_quad_pipeline,
             main_render_target,
-            main_render_quad,
+            debug_render_target,
+            render_quad,
             bindings,
             )
         };
@@ -340,7 +344,8 @@ impl MainRenderer {
             render_quad_pipeline,
             view: glam::Mat4::identity(),
             main_render_target,
-            main_render_quad,
+            debug_render_target,
+            render_quad,
             ctx: context,
         }
     }
@@ -490,13 +495,13 @@ impl MainRenderer {
         // TODO: Add post processinging pipeline
         self.ctx.apply_pipeline(&self.render_quad_pipeline);
         let main_render_bindings = miniquad::Bindings {
-            vertex_buffers: self.main_render_quad.vertices.clone(),
-            index_buffer: self.main_render_quad.indices,
+            vertex_buffers: self.render_quad.vertices.clone(),
+            index_buffer: self.render_quad.indices,
             images: vec![self.main_render_target.render_target],
         };
         self.ctx.apply_bindings(&main_render_bindings);
         self.ctx
-            .draw(0, self.main_render_quad.num_of_indices as i32, 1);
+            .draw(0, self.render_quad.num_of_indices as i32, 1);
 
         self.ctx.end_render_pass();
         self.ctx.commit_frame();
