@@ -95,13 +95,6 @@ pub enum RenderCommand {
 }
 
 impl RenderCommand {
-    pub fn is_draw(&self) -> bool {
-        match self {
-            RenderCommand::DrawMesh2D(_) => true,
-            _ => false,
-        }
-    }
-
     pub fn into_draw_2d(&self) -> Option<&'_ DrawMesh2D> {
         match self {
             RenderCommand::DrawMesh2D(mesh) => Some(mesh),
@@ -343,12 +336,12 @@ impl MainRenderer {
             let main_render_target = RenderTarget::new(ctx, width as u32, height as u32);
             let debug_render_target = RenderTarget::new(ctx, width as u32, height as u32);
             (
-            shader_pipeline,
-            render_quad_pipeline,
-            main_render_target,
-            debug_render_target,
-            render_quad,
-            bindings,
+                shader_pipeline,
+                render_quad_pipeline,
+                main_render_target,
+                debug_render_target,
+                render_quad,
+                bindings,
             )
         };
         Self {
@@ -425,15 +418,11 @@ impl MainRenderer {
 
         self.ctx.apply_pipeline(&self.shader_pipeline);
 
-        let (draw_cmds, rest): (Vec<_>, Vec<_>) = self
+        for render_cmd in self
             .main_render_target
             .commands
             .iter()
-            .partition(|cmd| cmd.is_draw());
-
-        for render_cmd in draw_cmds
-            .iter()
-            .filter_map(|draw| draw.clone().into_draw_2d())
+            .filter_map(|draw| draw.into_draw_2d())
         {
             let (bindings, elements) = self.prepare_draw(&render_cmd.mesh, &render_cmd.material);
             let model = render_cmd.model();
@@ -442,8 +431,16 @@ impl MainRenderer {
             self.ctx.apply_uniforms(&uniform);
             self.ctx.draw(0, elements as i32, 1);
         }
-        for font_cmd in rest.iter().filter_map(|cmd| cmd.clone().into_draw_font()) {
-            let (v, i) = &self.texts.get(&font_cmd.text).expect("Text should be in GPU memory, but isn't");
+        for font_cmd in self
+            .main_render_target
+            .commands
+            .iter()
+            .filter_map(|cmd| cmd.into_draw_font())
+        {
+            let (v, i) = &self
+                .texts
+                .get(&font_cmd.text)
+                .expect("Text should be in GPU memory, but isn't");
             let elements = font_cmd.text.len() as i32 * 6;
             let m = &self.debug_font_bindings.images;
             let bindings = miniquad::Bindings {
@@ -499,21 +496,17 @@ impl MainRenderer {
             miniquad::PassAction::Clear {
                 color: Some((0., 0., 0., 0.).into()),
                 depth: None,
-                stencil: None
-
-            }
+                stencil: None,
+            },
         );
         self.ctx.apply_pipeline(&self.shader_pipeline);
-        let (draw_cmds, _): (Vec<_>, Vec<_>) = self
+        let draw_sprite = self
             .debug_render_target
             .commands
             .iter()
-            .partition(|cmd| cmd.is_draw());
+            .filter_map(|draw| draw.into_draw_2d());
 
-        for render_cmd in draw_cmds
-            .iter()
-            .filter_map(|draw| draw.clone().into_draw_2d())
-        {
+        for render_cmd in draw_sprite {
             let (bindings, elements) = self.prepare_draw(&render_cmd.mesh, &render_cmd.material);
             let model = render_cmd.model();
             uniform.model = model;
@@ -536,8 +529,7 @@ impl MainRenderer {
             images: vec![self.main_render_target.render_target],
         };
         self.ctx.apply_bindings(&main_render_bindings);
-        self.ctx
-            .draw(0, self.render_quad.num_of_indices as i32, 1);
+        self.ctx.draw(0, self.render_quad.num_of_indices as i32, 1);
 
         let debug_render_pass = miniquad::Bindings {
             vertex_buffers: self.render_quad.vertices.clone(),
@@ -545,8 +537,7 @@ impl MainRenderer {
             images: vec![self.debug_render_target.render_target],
         };
         self.ctx.apply_bindings(&debug_render_pass);
-        self.ctx
-            .draw(0, self.render_quad.num_of_indices as i32, 1);
+        self.ctx.draw(0, self.render_quad.num_of_indices as i32, 1);
 
         self.ctx.end_render_pass();
     }
