@@ -76,6 +76,16 @@ impl DrawMesh2D {
 pub struct DrawFont {
     pub text: String,
     pub font: AssetIdentity,
+    pub position: glam::Vec2,
+}
+
+impl DrawFont {
+    pub fn model(&self) -> glam::Mat4 {
+        glam::Mat4::from_rotation_translation(
+            glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), 0.),
+            glam::Vec3::new(self.position.x, self.position.y, 0.),
+        )
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -95,6 +105,13 @@ impl RenderCommand {
     pub fn into_draw_2d(&self) -> Option<&'_ DrawMesh2D> {
         match self {
             RenderCommand::DrawMesh2D(mesh) => Some(mesh),
+            _ => None,
+        }
+    }
+
+    pub fn into_draw_font(&self) -> Option<&'_ DrawFont> {
+        match self {
+            RenderCommand::DrawFont(font) => Some(font),
             _ => None,
         }
     }
@@ -410,39 +427,8 @@ impl MainRenderer {
         };
 
         self.ctx.apply_pipeline(&self.shader_pipeline);
-        {
-            for SpriteRenderCommand {
-                position,
-                binding,
-                num_of_elements,
-                angle,
-            } in self.render_commands.iter()
-            {
-                let mesh = match self.meshes.get(binding) {
-                    Some(m) => m,
-                    _ => continue,
-                };
-                let material = match self.materials.get(binding) {
-                    Some(m) => m,
-                    _ => continue,
-                };
-                let model = glam::Mat4::from_rotation_translation(
-                    glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), *angle),
-                    glam::Vec3::new(position.x, position.y, 0.),
-                );
-                uniform.model = model;
-                let bindings = miniquad::Bindings {
-                    vertex_buffers: mesh.vertices.clone(),
-                    index_buffer: mesh.indices.clone(),
-                    images: material.textures.clone(),
-                };
-                self.ctx.apply_bindings(&bindings);
-                self.ctx.apply_uniforms(&uniform);
-                self.ctx.draw(0, *num_of_elements, 1);
-            }
-        }
 
-        let (draw_cmds, _): (Vec<_>, Vec<_>) = self
+        let (draw_cmds, rest): (Vec<_>, Vec<_>) = self
             .main_render_target
             .commands
             .iter()
@@ -459,19 +445,21 @@ impl MainRenderer {
             self.ctx.apply_uniforms(&uniform);
             self.ctx.draw(0, elements as i32, 1);
         }
-
-        // Show how the text is Rendered
-        // TODO(jhurstwright): I still want to put this into the Debug UI
-        // {
-        //     let model = glam::Mat4::from_rotation_translation(
-        //         glam::Quat::from_axis_angle(glam::Vec3::new(0., 0., 1.), (0.0f32).to_radians()),
-        //         glam::Vec3::new(10., 0., 0.),
-        //     );
-        //     uniform.model = model;
-        //     ctx.apply_bindings(&self.debug_font_bindings);
-        //     ctx.apply_uniforms(&uniform);
-        //     ctx.draw(0, 6, 1);
-        // }
+        for font_cmd in rest.iter().filter_map(|cmd| cmd.clone().into_draw_font()) {
+            let (v, i) = &self.texts.get(&font_cmd.text).expect("Text should be in GPU memory, but isn't");
+            let elements = font_cmd.text.len() as i32 * 6;
+            let m = &self.debug_font_bindings.images;
+            let bindings = miniquad::Bindings {
+                vertex_buffers: v.clone(),
+                index_buffer: i.clone(),
+                images: m.clone(),
+            };
+            let model = font_cmd.model();
+            uniform.model = model;
+            self.ctx.apply_bindings(&bindings);
+            self.ctx.apply_uniforms(&uniform);
+            self.ctx.draw(0, elements as i32, 1);
+        }
 
         // Render the Font
         for cmd in self.render_font_commands.iter() {

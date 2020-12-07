@@ -310,7 +310,6 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::M
 
 pub fn debug_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
     let GameWorld { world, .. } = game_world;
-    let cmds = &mut renderer.render_commands;
 
     let debug_draw_commands = &mut renderer.debug_render_target.commands;
     for (_, (dir, pos)) in &mut world.query::<(&components::HeadDirection, &components::Position)>()
@@ -324,27 +323,19 @@ pub fn debug_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::Ma
             position: vel + pos.0,
             rotation: angle,
         }));
-        // cmds.push(renderer::SpriteRenderCommand {
-        //     binding: "Arrow".into(),
-        //     position: vel + pos.0,
-        //     num_of_elements: 9,
-        //     angle,
-        // });
     }
 }
 
 pub fn draw_text(game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
     let GameWorld { world, .. } = game_world;
 
+    let main_draw_commands = &mut renderer.main_render_target.commands;
     for (_, (text, pos)) in &mut world.query::<(&components::Text, &components::Position)>() {
-        if let Some(_) = renderer.texts.get(&text.text()) {
-            let cmd = graphics::renderer::RenderFontCommand {
-                font: "KenneyFuture".to_string(),
-                text: text.text(),
-                position: pos.0,
-            };
-            renderer.render_font_commands.push(cmd);
-            continue;
-        }
+        main_draw_commands.push(renderer::RenderCommand::DrawFont(renderer::DrawFont {
+            text: text.text().clone(),
+            font: "KenneyFuture".into(),
+            position: pos.0,
+
+        }));
     }
 }

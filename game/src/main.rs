@@ -108,7 +108,7 @@ impl EventHandlerFree for SnakeGame {
 }
 
 fn main() {
-    miniquad::start(conf::Conf::default(), |mut ctx| {
+    miniquad::start(conf::Conf::default(), |ctx| {
         UserData::free(SnakeGame::new(ctx))
     });
 }

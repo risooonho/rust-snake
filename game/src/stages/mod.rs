@@ -1,4 +1,3 @@
-use miniquad::Context;
 pub mod game;
 pub mod paused;
 
