@@ -194,7 +194,6 @@ pub struct MainRenderer {
     pub shader_pipeline: miniquad::Pipeline,
     // TODO(jhurstwright): These should be consolidated into a UnionEnum
     pub render_font_commands: Vec<RenderFontCommand>,
-    pub render_commands: Vec<SpriteRenderCommand>,
     pub asset_commands: Vec<RenderAssetCommands>,
     pub fonts: HashMap<String, font::Font>,
     pub texts: HashMap<String, (Vec<miniquad::Buffer>, miniquad::Buffer)>,
@@ -361,7 +360,6 @@ impl MainRenderer {
             texts: HashMap::new(),
             projection: glam::Mat4::identity(),
             render_font_commands: Vec::with_capacity(64),
-            render_commands: Vec::with_capacity(64),
             shader_pipeline,
             render_quad_pipeline,
             view: glam::Mat4::identity(),
@@ -405,7 +403,12 @@ impl MainRenderer {
         });
     }
 
-    pub fn draw(&mut self) {
+    fn draw_main_target(&mut self) {
+        let mut uniform = crate::shaders::sprite::VertexUniforms {
+            projection: self.projection,
+            view: self.view,
+            model: glam::Mat4::identity(),
+        };
         let render_pass = miniquad::RenderPass::new(
             &mut self.ctx,
             self.main_render_target.render_target,
@@ -419,12 +422,6 @@ impl MainRenderer {
                 stencil: None,
             },
         );
-
-        let mut uniform = crate::shaders::sprite::VertexUniforms {
-            projection: self.projection,
-            view: self.view,
-            model: glam::Mat4::identity(),
-        };
 
         self.ctx.apply_pipeline(&self.shader_pipeline);
 
@@ -482,7 +479,15 @@ impl MainRenderer {
             }
         }
         self.ctx.end_render_pass();
+        self.main_render_target.commands.clear();
+    }
 
+    fn draw_debug_target(&mut self) {
+        let mut uniform = crate::shaders::sprite::VertexUniforms {
+            projection: self.projection,
+            view: self.view,
+            model: glam::Mat4::identity(),
+        };
 
         let render_pass = miniquad::RenderPass::new(
             &mut self.ctx,
@@ -517,8 +522,10 @@ impl MainRenderer {
             self.ctx.draw(0, elements as i32, 1);
         }
         self.ctx.end_render_pass();
+        self.debug_render_target.commands.clear();
+    }
 
-
+    fn draw_layers_to_default(&mut self) {
         self.ctx.begin_default_pass(PassAction::Nothing);
 
         // TODO: Add post processinging pipeline
@@ -542,11 +549,14 @@ impl MainRenderer {
             .draw(0, self.render_quad.num_of_indices as i32, 1);
 
         self.ctx.end_render_pass();
-        self.ctx.commit_frame();
+    }
 
-        self.render_commands.clear();
-        self.main_render_target.commands.clear();
-        self.debug_render_target.commands.clear();
+    pub fn draw(&mut self) {
+        self.draw_main_target();
+        self.draw_debug_target();
+        self.draw_layers_to_default();
+
+        self.ctx.commit_frame();
     }
 
     fn prepare_draw(
