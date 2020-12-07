@@ -311,17 +311,25 @@ pub fn gather_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::M
 pub fn debug_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
     let GameWorld { world, .. } = game_world;
     let cmds = &mut renderer.render_commands;
+
+    let debug_draw_commands = &mut renderer.debug_render_target.commands;
     for (_, (dir, pos)) in &mut world.query::<(&components::HeadDirection, &components::Position)>()
     {
         let vel = dir.0.velocity();
         let velocity = Vec2::new(vel.x, vel.y * -1.);
         let angle = velocity.angle_between(Vec2::new(1., 0.));
-        cmds.push(renderer::SpriteRenderCommand {
-            binding: "Arrow".into(),
+        debug_draw_commands.push(renderer::RenderCommand::DrawMesh2D(renderer::DrawMesh2D {
+            material: "Arrow".into(),
+            mesh: "Arrow".into(),
             position: vel + pos.0,
-            num_of_elements: 9,
-            angle,
-        });
+            rotation: angle,
+        }));
+        // cmds.push(renderer::SpriteRenderCommand {
+        //     binding: "Arrow".into(),
+        //     position: vel + pos.0,
+        //     num_of_elements: 9,
+        //     angle,
+        // });
     }
 }
 

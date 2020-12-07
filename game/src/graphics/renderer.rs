@@ -293,6 +293,11 @@ impl MainRenderer {
                 &shaders::Vertex::buffer_formats(),
                 shader,
                 miniquad::PipelineParams {
+                    color_blend: Some(BlendState::new(
+                        miniquad::Equation::Add,
+                        miniquad::BlendFactor::Value(BlendValue::SourceAlpha),
+                        BlendFactor::OneMinusValue(BlendValue::SourceAlpha),
+                    )),
                     ..Default::default()
                 },
             );
@@ -490,6 +495,42 @@ impl MainRenderer {
         }
         self.ctx.end_render_pass();
 
+
+        let render_pass = miniquad::RenderPass::new(
+            &mut self.ctx,
+            self.debug_render_target.render_target,
+            self.debug_render_target.depth_target,
+        );
+        self.ctx.begin_pass(
+            render_pass,
+            miniquad::PassAction::Clear {
+                color: Some((0., 0., 0., 0.).into()),
+                depth: None,
+                stencil: None
+
+            }
+        );
+        self.ctx.apply_pipeline(&self.shader_pipeline);
+        let (draw_cmds, _): (Vec<_>, Vec<_>) = self
+            .debug_render_target
+            .commands
+            .iter()
+            .partition(|cmd| cmd.is_draw());
+
+        for render_cmd in draw_cmds
+            .iter()
+            .filter_map(|draw| draw.clone().into_draw_2d())
+        {
+            let (bindings, elements) = self.prepare_draw(&render_cmd.mesh, &render_cmd.material);
+            let model = render_cmd.model();
+            uniform.model = model;
+            self.ctx.apply_bindings(&bindings);
+            self.ctx.apply_uniforms(&uniform);
+            self.ctx.draw(0, elements as i32, 1);
+        }
+        self.ctx.end_render_pass();
+
+
         self.ctx.begin_default_pass(PassAction::Nothing);
 
         // TODO: Add post processinging pipeline
@@ -503,11 +544,21 @@ impl MainRenderer {
         self.ctx
             .draw(0, self.render_quad.num_of_indices as i32, 1);
 
+        let debug_render_pass = miniquad::Bindings {
+            vertex_buffers: self.render_quad.vertices.clone(),
+            index_buffer: self.render_quad.indices,
+            images: vec![self.debug_render_target.render_target],
+        };
+        self.ctx.apply_bindings(&debug_render_pass);
+        self.ctx
+            .draw(0, self.render_quad.num_of_indices as i32, 1);
+
         self.ctx.end_render_pass();
         self.ctx.commit_frame();
 
         self.render_commands.clear();
         self.main_render_target.commands.clear();
+        self.debug_render_target.commands.clear();
     }
 
     fn prepare_draw(
