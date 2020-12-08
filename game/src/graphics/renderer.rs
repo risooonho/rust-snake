@@ -114,6 +114,7 @@ pub struct RenderTarget {
     pub render_target: miniquad::Texture,
     pub depth_target: Option<miniquad::Texture>,
     pub commands: Vec<RenderCommand>,
+    pass: miniquad::RenderPass,
 }
 
 impl RenderTarget {
@@ -126,11 +127,18 @@ impl RenderTarget {
                 ..Default::default()
             },
         );
+        let pass = miniquad::RenderPass::new(ctx, render_target, None);
+
         Self {
             render_target,
             depth_target: None,
             commands: Vec::with_capacity(128),
+            pass,
         }
+    }
+
+    pub fn begin(&mut self, ctx: &mut miniquad::Context, action: miniquad::PassAction) {
+        ctx.begin_pass(self.pass, action);
     }
 }
 
@@ -402,13 +410,9 @@ impl MainRenderer {
             view: self.view,
             model: glam::Mat4::identity(),
         };
-        let render_pass = miniquad::RenderPass::new(
+
+        self.main_render_target.begin(
             &mut self.ctx,
-            self.main_render_target.render_target,
-            self.main_render_target.depth_target,
-        );
-        self.ctx.begin_pass(
-            render_pass,
             miniquad::PassAction::Clear {
                 color: Some(graphics::colors::DARKGRAY.into()),
                 depth: Some(1.),
@@ -486,13 +490,8 @@ impl MainRenderer {
             model: glam::Mat4::identity(),
         };
 
-        let render_pass = miniquad::RenderPass::new(
+        self.debug_render_target.begin(
             &mut self.ctx,
-            self.debug_render_target.render_target,
-            self.debug_render_target.depth_target,
-        );
-        self.ctx.begin_pass(
-            render_pass,
             miniquad::PassAction::Clear {
                 color: Some((0., 0., 0., 0.).into()),
                 depth: None,
