@@ -4,7 +4,7 @@ use graphics::renderer;
 use crate::graphics::{self};
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
-use crate::{components, graphics::renderer::MaterialAsset};
+use crate::components;
 
 pub struct GameState {
     direction: components::Direction,
