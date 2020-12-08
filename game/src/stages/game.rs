@@ -4,10 +4,7 @@ use graphics::renderer;
 use crate::graphics::{self};
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
-use crate::{
-    components,
-    graphics::renderer::{MaterialAsset},
-};
+use crate::{components, graphics::renderer::MaterialAsset};
 
 pub struct GameState {
     direction: components::Direction,
@@ -52,22 +49,11 @@ impl GameState {
         );
         let arrow_texture =
             crate::utils::build_square_texture(&mut renderer.ctx, 4, crate::graphics::colors::RED);
-        renderer.materials.insert(
-            "Food".into(),
-            MaterialAsset::new("Food", vec![food_texture]),
-        );
-        renderer.materials.insert(
-            "Tail".into(),
-            MaterialAsset::new("Tail", vec![tail_texture]),
-        );
-        renderer.materials.insert(
-            "Snake".into(),
-            MaterialAsset::new("Snake", vec![snake_texture]),
-        );
-        renderer.materials.insert(
-            "Arrow".into(),
-            MaterialAsset::new("Arrow", vec![arrow_texture]),
-        );
+
+        renderer.add_material("Snake", vec![snake_texture]);
+        renderer.add_material("Food", vec![food_texture]);
+        renderer.add_material("Tail", vec![tail_texture]);
+        renderer.add_material("Arrow", vec![arrow_texture]);
 
         let snake_mesh = crate::utils::make_square_raw(1.);
         let food_mesh = crate::utils::make_square_raw(0.8);
