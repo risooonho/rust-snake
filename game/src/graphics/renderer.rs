@@ -376,8 +376,11 @@ impl MainRenderer {
         self.view = camera.view;
     }
 
-
-    pub fn add_material<T: Into<AssetIdentity>>(&mut self, name: T, textures: Vec<miniquad::Texture>) {
+    pub fn add_material<T: Into<AssetIdentity>>(
+        &mut self,
+        name: T,
+        textures: Vec<miniquad::Texture>,
+    ) {
         let asset_name = name.into();
         let material = MaterialAsset::new(asset_name.clone(), textures);
         self.materials.insert(asset_name, material);
@@ -392,7 +395,12 @@ impl MainRenderer {
         let asset = name.into();
         let vertex_buffer = Buffer::immutable(&mut self.ctx, BufferType::VertexBuffer, &vertices);
         let index_buffer = Buffer::immutable(&mut self.ctx, BufferType::IndexBuffer, &indices);
-        let mesh = MeshAsset::new(asset.clone(), vec![vertex_buffer], index_buffer, indices.len() as u16);
+        let mesh = MeshAsset::new(
+            asset.clone(),
+            vec![vertex_buffer],
+            index_buffer,
+            indices.len() as u16,
+        );
         self.meshes.insert(asset, mesh);
     }
 

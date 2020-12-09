@@ -1,10 +1,10 @@
 use components::Input;
 use graphics::renderer;
 
+use crate::components;
 use crate::graphics::{self};
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
-use crate::components;
 
 pub struct GameState {
     direction: components::Direction,

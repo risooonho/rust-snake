@@ -298,7 +298,11 @@ pub fn game_over_system(game_world: &mut GameWorld) -> bool {
 pub fn gather_render_cmds(game_world: &mut GameWorld, renderer: &mut graphics::MainRenderer) {
     let GameWorld { world, .. } = game_world;
     let main_draw_commands = &mut renderer.main_render_target.commands;
-    for (_, (mesh, material, pos)) in &mut world.query::<(&components::Mesh, &components::Material, &components::Position)>() {
+    for (_, (mesh, material, pos)) in &mut world.query::<(
+        &components::Mesh,
+        &components::Material,
+        &components::Position,
+    )>() {
         main_draw_commands.push(renderer::RenderCommand::DrawMesh2D(renderer::DrawMesh2D {
             rotation: 0f32,
             material: material.0.clone(),
@@ -335,7 +339,6 @@ pub fn draw_text(game_world: &mut GameWorld, renderer: &mut graphics::MainRender
             text: text.text().clone(),
             font: "KenneyFuture".into(),
             position: pos.0,
-
         }));
     }
 }

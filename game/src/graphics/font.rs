@@ -143,7 +143,6 @@ impl Font {
             glyph_y: y as u32,
             glyph_w: width as u32,
             glyph_h: height as u32,
-
         };
 
         self.glyphs.insert(character, character_info);
@@ -154,8 +153,11 @@ impl Font {
             for j in 0..height {
                 for i in 0..width {
                     let coverage = bitmap[(j * width + i) as usize] as f32 / 255.0;
-                    self.font_image
-                        .set_pixel((x + i) as usize, (y + j) as usize, Color::new(1., 1., 1., coverage))
+                    self.font_image.set_pixel(
+                        (x + i) as usize,
+                        (y + j) as usize,
+                        Color::new(1., 1., 1., coverage),
+                    )
                 }
             }
         }
@@ -171,8 +173,7 @@ impl Font {
                 filter: miniquad::FilterMode::Nearest,
                 width: self.font_image.width as u32,
                 height: self.font_image.height as u32,
-
-            }
+            },
         )
     }
 }
