@@ -52,6 +52,13 @@ impl CpuImage {
     }
 }
 
+pub struct MappedCharInfo {
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct CharInfo {
     pub offset_x: i32,
@@ -62,6 +69,17 @@ pub struct CharInfo {
     pub glyph_y: u32,
     pub glyph_w: u32,
     pub glyph_h: u32,
+}
+
+impl CharInfo {
+    pub fn scaled_position(&self, width: f32, height: f32) -> MappedCharInfo {
+        MappedCharInfo {
+            x: self.glyph_x as f32 / width as f32,
+            y: self.glyph_y as f32 / height as f32,
+            width: self.glyph_w as f32 / width as f32,
+            height: self.glyph_h as f32 / height as f32,
+        }
+    }
 }
 
 pub fn ascii_character_list() -> Vec<char> {

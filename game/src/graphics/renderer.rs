@@ -1,3 +1,4 @@
+use font::MappedCharInfo;
 use miniquad::*;
 // TODO(jhurstwright): Replace with no_std hashmap
 use std::collections::HashMap;
@@ -227,35 +228,31 @@ fn create_text_buffer(
     for (index, character) in text.chars().enumerate() {
         let index = index as u16;
         if let Some(glyph) = font.glyphs.get(&character) {
-            let font::CharInfo {
-                glyph_x,
-                glyph_y,
-                glyph_h,
-                glyph_w,
-                ..
-            } = *glyph;
-            let w = (glyph_w as f32 / 2.) * scale;
-            let h = (glyph_h as f32 / 2.) * scale;
-            let texture_x = glyph_x as f32 / width as f32;
-            let texture_y = glyph_y as f32 / height as f32;
-            let texture_w = glyph_w as f32 / width as f32;
-            let texture_h = glyph_h as f32 / height as f32;
+            let w = (glyph.glyph_w as f32 / 2.) * scale;
+            let h = (glyph.glyph_h as f32 / 2.) * scale;
+
+            let MappedCharInfo {
+                x,
+                y,
+                width,
+                height,
+            } = glyph.scaled_position(width as f32, height as f32);
 
             vertices.push(Vertex {
                 pos: Vec2::new(offset - w, -h),
-                uv: Vec2::new(texture_x, texture_y + texture_h),
+                uv: Vec2::new(x, y + height),
             });
             vertices.push(Vertex {
                 pos: Vec2::new(offset + w, -h),
-                uv: Vec2::new(texture_x + texture_w, texture_y + texture_h),
+                uv: Vec2::new(x + width, y + height),
             });
             vertices.push(Vertex {
                 pos: Vec2::new(offset + w, h),
-                uv: Vec2::new(texture_x + texture_w, texture_y),
+                uv: Vec2::new(x + width, y),
             });
             vertices.push(Vertex {
                 pos: Vec2::new(offset - w, h),
-                uv: Vec2::new(texture_x, texture_y),
+                uv: Vec2::new(x, y),
             });
 
             indices.push(0 + (index * 4));
