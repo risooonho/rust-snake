@@ -1,9 +1,11 @@
+use std::rc::Rc;
+
 use crate::components;
 use megaui;
 
 #[derive(Clone)]
 pub struct Atlas;
-impl megaui::FontAtlas for Atlas {
+impl megaui::CharacterAtlas for Atlas {
     fn get_advance(&self, _: char) -> f32 {
         0.
     }
@@ -21,14 +23,12 @@ pub struct WindowParams {
     pub movable: bool,
     pub close_button: bool,
     pub titlebar: bool,
-    pub atlas: Atlas,
 }
 
 impl Default for WindowParams {
     fn default() -> WindowParams {
         WindowParams {
             label: "".to_string(),
-            atlas: Atlas,
             movable: true,
             close_button: false,
             titlebar: true,
@@ -44,7 +44,8 @@ pub struct UiContext {
 
 impl UiContext {
     pub fn new() -> Self {
-        let ui = megaui::Ui::new();
+        let atlas = Rc::new(Atlas);
+        let ui = megaui::Ui::new(atlas);
         let draw_list = Vec::with_capacity(64);
 
         Self {
@@ -54,12 +55,12 @@ impl UiContext {
         }
     }
 
-    pub fn window<F: FnOnce(&mut megaui::Ui, &Atlas)>(
+    pub fn window<F: FnOnce(&mut megaui::Ui)>(
         &mut self,
         id: megaui::Id,
         position: glam::Vec2,
         size: glam::Vec2,
-        params: WindowParams,
+        _params: WindowParams,
         f: F,
     ) -> bool {
         let ui = &mut self.ui;
@@ -69,7 +70,7 @@ impl UiContext {
             megaui::Vector2::new(position.x, position.y),
             megaui::Vector2::new(size.x, size.y),
         )
-        .ui(ui, &params.atlas, f)
+        .ui(ui, f)
     }
 
     pub fn process_input(&mut self, _input: &components::Input) {

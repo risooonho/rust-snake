@@ -78,8 +78,8 @@ impl EventHandlerFree for SnakeGame {
         self.ui.process_input(&self.input);
         self.renderer.load_assets();
 
-        self.ui.window(hash!(), glam::Vec2::new(20., 20.), glam::Vec2::new(100., 200.), ui::WindowParams::default(), |ui: &mut megaui::Ui, atlas: &ui::Atlas| {
-            ui.label(atlas, None, "Some random text");
+        self.ui.window(hash!(), glam::Vec2::new(20., 20.), glam::Vec2::new(100., 200.), ui::WindowParams::default(), |ui: &mut megaui::Ui| {
+            ui.label( None, "Some random text");
             // if ui.button(&atlas, None, "click me") {
             //     println!("hi");
             // }
