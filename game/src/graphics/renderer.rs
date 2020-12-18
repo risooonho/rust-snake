@@ -3,7 +3,7 @@ use miniquad::*;
 // TODO(jhurstwright): Replace with no_std hashmap
 use std::collections::HashMap;
 
-use crate::components;
+use crate::{AssetIdentity, components};
 use crate::graphics;
 use crate::graphics::font;
 use crate::shaders;
@@ -11,9 +11,6 @@ use crate::utils;
 
 pub type Materials = HashMap<AssetIdentity, MaterialAsset>;
 pub type Meshes = HashMap<AssetIdentity, MeshAsset>;
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct AssetIdentity(pub String);
 
 impl From<String> for AssetIdentity {
     fn from(v: String) -> Self {

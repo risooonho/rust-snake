@@ -8,6 +8,9 @@ mod shaders;
 mod stages;
 mod systems;
 mod utils;
+mod types;
+
+pub use types::AssetIdentity;
 
 struct SnakeGame {
     stages: stages::StageStack,

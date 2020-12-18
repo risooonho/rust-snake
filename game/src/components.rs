@@ -2,7 +2,7 @@ use core::str::FromStr;
 use glam::{Mat4, Quat, Vec2, Vec3};
 use miniquad::date;
 
-use crate::{components, graphics::renderer};
+use crate::{AssetIdentity, components, graphics::renderer};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Input {
@@ -274,7 +274,7 @@ impl Text {
 }
 
 #[derive(Debug, Clone)]
-pub struct Material(pub renderer::AssetIdentity);
+pub struct Material(pub AssetIdentity);
 
 #[derive(Debug, Clone)]
-pub struct Mesh(pub renderer::AssetIdentity);
+pub struct Mesh(pub AssetIdentity);
