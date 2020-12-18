@@ -3,7 +3,7 @@ use miniquad::*;
 // TODO(jhurstwright): Replace with no_std hashmap
 use std::collections::HashMap;
 
-use crate::{AssetIdentity, components};
+use crate::{AssetIdentity, components, types};
 use crate::graphics;
 use crate::graphics::font;
 use crate::shaders;
@@ -436,7 +436,7 @@ impl MainRenderer {
         self.main_render_target.begin(
             &mut self.ctx,
             miniquad::PassAction::Clear {
-                color: Some(graphics::colors::DARKGRAY.into()),
+                color: Some(types::colors::DARKGRAY.into()),
                 depth: Some(1.),
                 stencil: None,
             },

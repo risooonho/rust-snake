@@ -1,4 +1,4 @@
-use crate::graphics::{colors, Color};
+use crate::types::{colors, Color};
 
 // TODO: This can replace some of color image generation functions
 pub struct CpuImage {

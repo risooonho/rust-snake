@@ -10,7 +10,7 @@ mod systems;
 mod utils;
 mod types;
 
-pub use types::AssetIdentity;
+pub use types::{AssetIdentity, Color};
 
 struct SnakeGame {
     stages: stages::StageStack,

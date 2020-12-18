@@ -1,7 +1,7 @@
 use components::Input;
 use graphics::renderer;
 
-use crate::components;
+use crate::{components, types};
 use crate::graphics::{self};
 use crate::stages::{NextStage, Paused, Stage};
 use crate::systems::{self, GameWorld};
@@ -35,20 +35,20 @@ impl GameState {
         let snake_texture = crate::utils::build_square_texture(
             &mut renderer.ctx,
             4,
-            crate::graphics::colors::RAYWHITE,
+            types::colors::RAYWHITE,
         );
         let tail_texture = crate::utils::build_square_texture(
             &mut renderer.ctx,
             4,
-            crate::graphics::colors::RAYWHITE,
+            types::colors::RAYWHITE,
         );
         let food_texture = crate::utils::build_square_texture(
             &mut renderer.ctx,
             4,
-            crate::graphics::colors::PURPLE,
+            types::colors::PURPLE,
         );
         let arrow_texture =
-            crate::utils::build_square_texture(&mut renderer.ctx, 4, crate::graphics::colors::RED);
+            crate::utils::build_square_texture(&mut renderer.ctx, 4, types::colors::RED);
 
         renderer.add_material("Snake", vec![snake_texture]);
         renderer.add_material("Food", vec![food_texture]);

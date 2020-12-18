@@ -1,7 +1,7 @@
 use glam::Vec2;
 use miniquad::{Buffer, BufferType, Context, Texture};
 
-use crate::graphics::Color;
+use crate::types::Color;
 use crate::shaders::Vertex;
 
 pub fn build_square_texture<T: Into<Color>>(ctx: &mut Context, width: u16, color: T) -> Texture {
