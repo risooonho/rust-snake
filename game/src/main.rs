@@ -1,5 +1,4 @@
 use miniquad::*;
-use megaui::hash;
 use stages::GameState;
 
 mod components;
@@ -8,14 +7,12 @@ mod graphics;
 mod shaders;
 mod stages;
 mod systems;
-mod ui;
 mod utils;
 
 struct SnakeGame {
     stages: stages::StageStack,
     renderer: graphics::MainRenderer,
     input: components::Input,
-    ui: ui::UiContext,
 }
 
 impl SnakeGame {
@@ -31,18 +28,12 @@ impl SnakeGame {
         let game_stage = Box::new(init_state);
 
         stages.push(game_stage as Box<dyn stages::Stage>);
-        let ui = ui::UiContext::new();
 
         SnakeGame {
             stages,
             renderer,
             input,
-            ui,
         }
-    }
-
-    pub fn delta_time(&self) -> f32 {
-        0.
     }
 }
 
@@ -75,15 +66,7 @@ impl EventHandlerFree for SnakeGame {
             }
             _ => {}
         };
-        self.ui.process_input(&self.input);
         self.renderer.load_assets();
-
-        self.ui.window(hash!(), glam::Vec2::new(20., 20.), glam::Vec2::new(100., 200.), ui::WindowParams::default(), |ui: &mut megaui::Ui| {
-            ui.label( None, "Some random text");
-            // if ui.button(&atlas, None, "click me") {
-            //     println!("hi");
-            // }
-        });
         self.input.reset();
     }
 
@@ -91,8 +74,6 @@ impl EventHandlerFree for SnakeGame {
         for stage in self.stages.iter_mut() {
             stage.draw(&mut self.renderer);
         }
-        self.ui.draw(self.delta_time());
-
         self.renderer.draw();
     }
 
