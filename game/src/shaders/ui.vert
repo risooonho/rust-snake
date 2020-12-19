@@ -1,20 +1,21 @@
 #version 100
+uniform vec2 u_screen_size;
+uniform vec2 u_tex_size;
 
-attribute vec2 pos;
-attribute vec2 uv;
-attribute vec4 color_in;
+attribute vec2 a_pos;
+attribute vec2 a_tc;
+attribute vec4 a_color;
 
-
-varying lowp vec2 texcoords;
-varying lowp vec4 color;
-
-
-uniform mat4 model;
-uniform mat4 proj_view;
-
+varying vec2 v_tc;
+varying vec4 v_color;
 
 void main() {
-    texcoords = uv;
-    color = color_in;
-    gl_Position = proj_view * model * vec4(pos, 0.0, 1.0);
+    gl_Position = vec4(
+        2.0 * a_pos.x / u_screen_size.x - 1.0,
+        1.0 - 2.0 * a_pos.y / u_screen_size.y,
+        0.0,
+        1.0);
+    
+    v_tc = a_tc / u_tex_size;
+    v_color = a_color / 255.0;
 }

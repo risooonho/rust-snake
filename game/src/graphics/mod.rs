@@ -1,5 +1,6 @@
 pub mod font;
 pub mod renderer;
+pub mod ui;
 pub use renderer::MainRenderer;
 
 #[derive(Clone, Copy, PartialEq, PartialOrd, Default)]

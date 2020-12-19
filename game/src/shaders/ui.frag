@@ -1,10 +1,12 @@
 #version 100
 
-varying lowp vec2 texcoords;
-varying lowp vec4 color;
+uniform sampler2D u_sampler;
+precision highp float;
 
-uniform sampler2D tex;
+varying vec2 v_tc;
+varying vec4 v_color;
 
 void main() {
-    gl_FragColor = texture2D(tex, texcoords) * color;
+    gl_FragColor = v_color;
+    gl_FragColor.a *= texture2D(u_sampler, v_tc).g;
 }
