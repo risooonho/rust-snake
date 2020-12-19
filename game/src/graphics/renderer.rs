@@ -4,6 +4,7 @@ use miniquad::*;
 use std::collections::HashMap;
 
 use crate::{AssetIdentity, components, types};
+use crate::ui;
 use crate::graphics;
 use crate::graphics::font;
 use crate::shaders;
@@ -203,7 +204,10 @@ pub struct MainRenderer {
     pub main_render_target: RenderTarget,
     pub debug_render_target: RenderTarget,
     pub render_quad_pipeline: miniquad::Pipeline,
+    pub ui_pipeline: miniquad::Pipeline,
     pub render_quad: MeshAsset,
+    pub ui_render_target: RenderTarget,
+    pub ui_draw_list: Vec<ui::DrawCommand>,
 }
 
 fn create_text_buffer(
@@ -275,8 +279,6 @@ impl MainRenderer {
         let (
             shader_pipeline,
             render_quad_pipeline,
-            main_render_target,
-            debug_render_target,
             render_quad,
             debug_font_bindings,
         ) = {
@@ -334,18 +336,35 @@ impl MainRenderer {
                 render_mesh.1,
                 render_mesh.2,
             );
-            let (width, height) = ctx.screen_size();
-            let main_render_target = RenderTarget::new(ctx, width as u32, height as u32);
-            let debug_render_target = RenderTarget::new(ctx, width as u32, height as u32);
             (
                 shader_pipeline,
                 render_quad_pipeline,
-                main_render_target,
-                debug_render_target,
                 render_quad,
                 bindings,
             )
         };
+
+        let shader = shaders::ui::new(&mut context).unwrap();
+        let ui_pipeline = Pipeline::with_params(
+            &mut context,
+            &[miniquad::BufferLayout::default()],
+            &shaders::UiVertex::buffer_formats(),
+            shader,
+            miniquad::PipelineParams {
+                color_blend: Some(BlendState::new(
+                    miniquad::Equation::Add,
+                    miniquad::BlendFactor::Value(BlendValue::SourceAlpha),
+                    BlendFactor::OneMinusValue(BlendValue::SourceAlpha),
+                )),
+                ..Default::default()
+            },
+        );
+        let (width, height) = context.screen_size();
+        let main_render_target = RenderTarget::new(&mut context, width as u32, height as u32);
+        let debug_render_target = RenderTarget::new(&mut context, width as u32, height as u32);
+        let ui_render_target = RenderTarget::new(&mut context, width as u32, height as u32);
+
+
         Self {
             asset_commands: Vec::with_capacity(32),
             debug_font_bindings,
@@ -362,12 +381,21 @@ impl MainRenderer {
             debug_render_target,
             render_quad,
             ctx: context,
+            ui_draw_list: Vec::with_capacity(512),
+            ui_render_target,
+            ui_pipeline,
         }
     }
 
     pub fn update_view(&mut self, camera: &components::Camera2D) {
         self.projection = camera.projection;
         self.view = camera.view;
+    }
+
+    #[allow(dead_code)]
+    pub fn resize(&mut self, _width: f32, _height: f32) {
+        // Resize UIRenderTarget, MainRenderTarget, DebugRenderTarget
+        todo!()
     }
 
     pub fn add_material<T: Into<AssetIdentity>>(
@@ -539,6 +567,37 @@ impl MainRenderer {
         self.debug_render_target.commands.clear();
     }
 
+    fn draw_ui(&mut self) {
+        let (width, height) = self.ctx.screen_size();
+        let aspect = width / height;
+        let scale = 20.;
+        #[rustfmt::skip]
+        let projection = glam::Mat4::orthographic_rh_gl(
+                -aspect * scale,
+                aspect * scale,
+                -scale,
+                scale,
+                -1.,
+                1.0
+                );
+        let mut uniform = crate::shaders::ui::UiUniforms {
+            proj_view: projection,
+            model: glam::Mat4::identity(),
+        };
+
+        self.ui_render_target.begin(
+            &mut self.ctx,
+            miniquad::PassAction::Clear {
+                color: Some((0., 0., 0., 0.).into()),
+                depth: None,
+                stencil: None,
+            },
+        );
+        self.ctx.apply_pipeline(&self.ui_pipeline);
+        self.ctx.end_render_pass();
+        self.debug_render_target.commands.clear();
+    }
+
     fn draw_layers_to_default(&mut self) {
         self.ctx.begin_default_pass(PassAction::Nothing);
 
@@ -567,6 +626,7 @@ impl MainRenderer {
         self.draw_main_target();
         self.draw_debug_target();
         self.draw_layers_to_default();
+        self.draw_ui();
 
         self.ctx.commit_frame();
     }

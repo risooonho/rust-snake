@@ -1,7 +1,23 @@
+// TODO(jhurstwright): Create an alignment
+#[derive(Debug, Clone)]
+pub struct Rect {
+    positon: glam::Vec2,
+    extends: glam::Vec2,
+}
+
+impl Rect {
+    pub fn new(positon: glam::Vec2, extends: glam::Vec2) -> Self {
+        Self {
+            positon,
+            extends,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct AssetIdentity(pub String);
 
-#[derive(Clone, Copy, PartialEq, PartialOrd, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Color([f32; 4]);
 
 pub mod colors {

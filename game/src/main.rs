@@ -9,13 +9,17 @@ mod stages;
 mod systems;
 mod utils;
 mod types;
+mod ui;
 
+use types::Rect;
 pub use types::{AssetIdentity, Color};
+use ui::DrawCommand;
 
 struct SnakeGame {
     stages: stages::StageStack,
     renderer: graphics::MainRenderer,
     input: components::Input,
+    ui: ui::Ui,
 }
 
 impl SnakeGame {
@@ -29,6 +33,7 @@ impl SnakeGame {
         let mut stages = stages::new_stage_stack(16);
         let init_state = GameState::new(&input, &mut renderer);
         let game_stage = Box::new(init_state);
+        let ui = ui::Ui::new();
 
         stages.push(game_stage as Box<dyn stages::Stage>);
 
@@ -36,6 +41,7 @@ impl SnakeGame {
             stages,
             renderer,
             input,
+            ui,
         }
     }
 }
@@ -69,6 +75,8 @@ impl EventHandlerFree for SnakeGame {
             }
             _ => {}
         };
+
+        self.ui.push_cmd(DrawCommand::draw_rect(Rect::new(glam::Vec2::new(30., 30.), glam::Vec2::new(50., 50.)) , types::colors::GOLD));
         self.renderer.load_assets();
         self.input.reset();
     }
@@ -78,6 +86,7 @@ impl EventHandlerFree for SnakeGame {
             stage.draw(&mut self.renderer);
         }
         self.renderer.draw();
+        self.ui.draw(&mut self.renderer);
     }
 
     fn key_down_event(&mut self, keycode: KeyCode, _keymods: KeyMods, repeat: bool) {
