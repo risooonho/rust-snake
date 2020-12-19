@@ -1,3 +1,6 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+
 // TODO(jhurstwright): Create an alignment
 #[derive(Debug, Clone)]
 pub struct Rect {
@@ -14,8 +17,26 @@ impl Rect {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct AssetIdentity(pub String);
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+pub struct AssetIdentity(pub u64);
+
+impl From<String> for AssetIdentity {
+    fn from(v: String) -> Self {
+        let mut hasher = DefaultHasher::new();
+        v.hash(&mut hasher);
+        Self(hasher.finish())
+    }
+}
+
+impl From<&'_ str> for AssetIdentity {
+    fn from(v: &'_ str) -> Self {
+        let mut hasher = DefaultHasher::new();
+        v.hash(&mut hasher);
+        Self(hasher.finish())
+    }
+}
+
+
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
 pub struct Color([f32; 4]);

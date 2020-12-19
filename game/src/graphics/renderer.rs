@@ -13,18 +13,6 @@ use crate::utils;
 pub type Materials = HashMap<AssetIdentity, MaterialAsset>;
 pub type Meshes = HashMap<AssetIdentity, MeshAsset>;
 
-impl From<String> for AssetIdentity {
-    fn from(v: String) -> Self {
-        Self(v)
-    }
-}
-
-impl From<&'_ str> for AssetIdentity {
-    fn from(v: &'_ str) -> Self {
-        Self(v.to_owned())
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct SpriteRenderCommand {
     pub binding: AssetIdentity,
@@ -580,7 +568,7 @@ impl MainRenderer {
                 -1.,
                 1.0
                 );
-        let mut uniform = crate::shaders::ui::UiUniforms {
+        let _uniform = crate::shaders::ui::UiUniforms {
             proj_view: projection,
             model: glam::Mat4::identity(),
         };
@@ -595,7 +583,7 @@ impl MainRenderer {
         );
         self.ctx.apply_pipeline(&self.ui_pipeline);
         self.ctx.end_render_pass();
-        self.debug_render_target.commands.clear();
+        self.ui_render_target.commands.clear();
     }
 
     fn draw_layers_to_default(&mut self) {
