@@ -6,8 +6,7 @@ use std::collections::HashMap;
 use crate::graphics::font;
 use crate::shaders;
 use crate::utils;
-use crate::{components, types, AssetIdentity};
-use crate::{graphics, systems::create_snake_system};
+use crate::{components, graphics, types, AssetIdentity};
 
 pub type Materials = HashMap<AssetIdentity, MaterialAsset>;
 pub type Meshes = HashMap<AssetIdentity, MeshAsset>;

@@ -1,7 +1,8 @@
+use std::sync::Arc;
 use crate::shaders::ui as shader_ui;
 use miniquad::{
     Bindings, BlendFactor, BlendState, BlendValue, Buffer, BufferLayout, BufferType, Equation,
-    Pipeline, PipelineParams, Texture,
+    Pipeline, PipelineParams,
 };
 use shader_ui::UiVertex;
 
@@ -10,7 +11,7 @@ pub struct Painter {
     bindings: Bindings,
     vertex_buffer_size: usize,
     index_buffer_size: usize,
-    texture: Option<Texture>,
+    texture_version: u64,
 }
 
 impl Painter {
@@ -62,7 +63,22 @@ impl Painter {
             bindings,
             index_buffer_size,
             vertex_buffer_size,
-            texture: None,
+            texture_version: 0,
         }
     }
+
+    fn rebuild_texture(&mut self, ctx: &mut miniquad::Context, texture: Arc<egui::paint::Texture>) {}
+    fn paint_job(&mut self, ctx: &mut miniquad::Context, (clip_rect, mesh): egui::paint::PaintJob) {}
+
+
+    pub fn paint(&mut self, context: &mut miniquad::Context, jobs: egui::paint::PaintJobs, texture: Arc<egui::paint::Texture>) {
+        if texture.version != self.texture_version {
+            self.rebuild_texture(context, texture);
+        }
+
+        for job in jobs {
+            self.paint_job(context, job);
+        }
+    }
+
 }
