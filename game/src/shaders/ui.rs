@@ -5,8 +5,8 @@ pub const FRAGMENT: &str = include_str!("./ui.frag");
 #[derive(Debug)]
 pub struct UiVertex {
     pub pos: glam::Vec2,
+    pub color: [u8; 4],
     pub ui: glam::Vec2,
-    pub color: glam::Vec4,
 }
 
 impl UiVertex {
@@ -16,15 +16,15 @@ impl UiVertex {
 }
 
 const UI_VERTEX_BUFFERS: [miniquad::VertexAttribute; 3] = [
-    miniquad::VertexAttribute::new("a)ois", miniquad::VertexFormat::Float2),
+    miniquad::VertexAttribute::new("a_pos", miniquad::VertexFormat::Float2),
+    miniquad::VertexAttribute::new("a_srgba", miniquad::VertexFormat::Byte4),
     miniquad::VertexAttribute::new("a_tc", miniquad::VertexFormat::Float2),
-    miniquad::VertexAttribute::new("aa_color", miniquad::VertexFormat::Byte4),
 ];
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct UiUniforms {
     pub screen_size: glam::Vec2,
-    pub tex_size: glam::Vec2,
 }
 
 pub fn meta() -> miniquad::ShaderMeta {
@@ -33,7 +33,6 @@ pub fn meta() -> miniquad::ShaderMeta {
         uniforms: miniquad::UniformBlockLayout {
             uniforms: vec![
                 miniquad::UniformDesc::new("u_screen_size", miniquad::UniformType::Float2),
-                miniquad::UniformDesc::new("u_text_size", miniquad::UniformType::Float2),
             ],
         },
     }

@@ -192,7 +192,7 @@ pub struct MainRenderer {
     pub render_quad_pipeline: miniquad::Pipeline,
     pub render_quad: MeshAsset,
     pub ui_render_target: RenderTarget,
-    pub ui_painter: crate::graphics::ui::Painter,
+    pub ui_painter: crate::graphics::ui::MegaUI,
 }
 
 fn create_text_buffer(
@@ -338,7 +338,7 @@ impl MainRenderer {
         let main_render_target = RenderTarget::new(&mut context, width as u32, height as u32);
         let debug_render_target = RenderTarget::new(&mut context, width as u32, height as u32);
         let ui_render_target = RenderTarget::new(&mut context, width as u32, height as u32);
-        let ui_painter = crate::graphics::ui::Painter::new(&mut context);
+        let ui_painter = crate::graphics::ui::MegaUI::new(&mut context);
 
         Self {
             asset_commands: Vec::with_capacity(32),

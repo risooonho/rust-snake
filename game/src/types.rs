@@ -8,15 +8,6 @@ pub struct Rect {
     extends: glam::Vec2,
 }
 
-impl Rect {
-    pub fn new(positon: glam::Vec2, extends: glam::Vec2) -> Self {
-        Self {
-            positon,
-            extends,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct AssetIdentity(pub u64);
 
